@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+.venv/
+venv/
+*.db
+.mypy_cache/
+.ruff_cache/
+
+# Env files (never commit real credentials)
+.env
+!.env.example
+
+# Node
+node_modules/
+dashboard/dist/
+
+# Logs
+*.log
+/tmp/
+
+# OS
+.DS_Store

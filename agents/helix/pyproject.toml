@@ -1,0 +1,68 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "helix-agent"
+version = "0.1.0"
+description = "Helix — coding agent for the Omi platform"
+requires-python = ">=3.11"
+dependencies = [
+    # Orchestration
+    "langgraph>=0.2.50",
+    "langchain-core>=0.3.15",
+    "langchain-openai>=0.2.10",
+    "langchain-anthropic>=0.2.4",
+    "langchain-community>=0.3.9",
+    # LLM abstraction
+    "litellm>=1.52.0",
+    # API
+    "fastapi>=0.115.5",
+    "uvicorn[standard]>=0.32.1",
+    "websockets>=13.1",
+    "python-multipart>=0.0.12",
+    # Config & validation
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.6.1",
+    "python-dotenv>=1.0.1",
+    # GitHub
+    "PyGitHub>=2.5.0",
+    "gitpython>=3.1.43",
+    # Web search
+    "duckduckgo-search>=6.3.7",
+    "httpx>=0.28.0",
+    # Code intelligence
+    "tree-sitter>=0.23.2",
+    "tree-sitter-python>=0.23.2",
+    "tree-sitter-javascript>=0.23.0",
+    "tree-sitter-typescript>=0.23.0",
+    # Storage
+    "sqlalchemy>=2.0.36",
+    "aiosqlite>=0.20.0",
+    "psycopg[binary]>=3.2.3",
+    "pgvector>=0.3.5",
+    # Docker (sandbox)
+    "docker>=7.1.0",
+    # Token counting & cost tracking
+    "tiktoken>=0.8.0",
+    # CLI & output
+    "rich>=13.9.4",
+    "typer>=0.13.1",
+]
+
+[project.scripts]
+helix = "helix.cli:app"
+
+[project.optional-dependencies]
+dev = ["ruff", "mypy", "pytest", "pytest-asyncio"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.mypy]
+python_version = "3.11"
+strict = false
+
+[tool.hatch.build.targets.wheel]
+packages = ["helix"]

@@ -1,0 +1,42 @@
+services:
+  omi:
+    build: ..
+    ports:
+      - "8000:8000"
+    volumes:
+      - repos:/tmp/omi/repos
+      - worktrees:/tmp/omi/worktrees
+      - /var/run/docker.sock:/var/run/docker.sock   # for sandbox mode=docker
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - GITHUB_OWNER=${GITHUB_OWNER}
+      - OMI_DB_URL=postgresql+psycopg://omi:omi@db:5432/omi
+      - OMI_SANDBOX=docker
+      - OMI_REPOS_DIR=/tmp/omi/repos
+      - OMI_WORKTREES_DIR=/tmp/omi/worktrees
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: omi
+      POSTGRES_PASSWORD: omi
+      POSTGRES_DB: omi
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U omi"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  repos:
+  worktrees:
+  pgdata:
