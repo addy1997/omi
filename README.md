@@ -48,7 +48,7 @@ The platform intelligently routes each user request to the right agent (or agent
 
 ## Platform Architecture
 
-![Omi Architecture Diagram](https://excalidraw.com/#json=FGLqbhqYmik1WKjsLonYW,Ib1ydj6LA2Nv-0rksEbL-w)
+![Omi Architecture Diagram](assets/architecture.svg)
 
 **Architecture Overview:**
 
