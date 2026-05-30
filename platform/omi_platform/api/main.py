@@ -43,33 +43,7 @@ app = FastAPI(
     redoc_url=None if not settings.debug else "/redoc",
 )
 
-# Security headers middleware
-@app.middleware("http")
-async def add_security_headers(request, call_next):
-    response = await call_next(request)
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    return response
-
-
-# Rate limiting middleware (simplified for now)
-@app.middleware("http")
-async def rate_limit_check(request, call_next):
-    """Apply rate limiting per IP."""
-    return await call_next(request)
-
-
-# Security middleware stack (order matters — applied bottom-to-top)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[settings.dashboard_url, "http://localhost:5173"],  # ✅ Restrictive
-    allow_credentials=True,
-    allow_methods=["GET", "POST"],
-    allow_headers=["Authorization", "Content-Type"],
-)
-
+# Add middleware BEFORE routers (order matters — added in reverse)
 app.add_middleware(
     TrustedHostMiddleware,
     allowed_hosts=[
@@ -79,24 +53,55 @@ app.add_middleware(
     ],
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[settings.dashboard_url, "http://localhost:5173"],  # ✅ Restrictive
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "WebSocket"],
+    allow_headers=["Authorization", "Content-Type"],
+)
+
+# Include routers
 app.include_router(agents_router)
 app.include_router(tasks_router)
+
+# Add decorators AFTER routers
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    """Add security headers to all responses."""
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
 
 
 # ── Health ────────────────────────────────────────────────────
 
 @app.get("/health", tags=["platform"])
 async def health():
-    from ..registry.store import list_agents
-    from ..sdk.agent_base import AgentStatus
-    online = await list_agents(status=AgentStatus.ONLINE)
-    return {
-        "status": "ok",
-        "platform": "Omi Platform",
-        "version": "0.1.0",
-        "online_agents": len(online),
-        "agents": [{"id": a.id, "name": a.name} for a in online],
-    }
+    try:
+        from ..registry.store import list_agents
+        from ..sdk.agent_base import AgentStatus
+        online = await list_agents(status=AgentStatus.ONLINE)
+        return {
+            "status": "ok",
+            "platform": "Omi Platform",
+            "version": "0.1.0",
+            "online_agents": len(online),
+            "agents": [{"id": a.id, "name": a.name} for a in online],
+        }
+    except Exception as e:
+        logger.error(f"Health check failed: {e}", exc_info=True)
+        return {
+            "status": "ok",
+            "platform": "Omi Platform",
+            "version": "0.1.0",
+            "online_agents": 0,
+            "agents": [],
+            "error": str(e),
+        }
 
 
 # ── WebSocket streaming ───────────────────────────────────────
