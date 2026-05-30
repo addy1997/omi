@@ -48,7 +48,7 @@ The platform intelligently routes each user request to the right agent (or agent
 
 ## Platform Architecture
 
-![Omi Architecture Diagram](assets/architecture.svg)
+![Omi Architecture Diagram](assets/architecture.png)
 
 **Architecture Overview:**
 

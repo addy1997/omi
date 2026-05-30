@@ -1,0 +1,109 @@
+graph TB
+    User["👤 User"]
+
+    subgraph Client["Client Layer"]
+        Dashboard["React Dashboard<br/>(localhost:5173)<br/>Chat • Agents • Tasks • Metrics"]
+    end
+
+    User -->|HTTP/WebSocket| Dashboard
+
+    subgraph Network["Network Communication"]
+        HTTP["HTTP REST API<br/>WebSocket Streaming"]
+    end
+
+    Dashboard -->|HTTP/WS| HTTP
+    HTTP -->|HTTP/WS| API
+
+    subgraph Platform["Omi Platform API (localhost:9000)"]
+        APIGateway["API Gateway<br/>FastAPI + CORS"]
+
+        subgraph Routing["Task Routing"]
+            KeywordRouter["Keyword<br/>Heuristics"]
+            LLMRouter["LLM Router<br/>Claude Haiku"]
+        end
+
+        subgraph Management["Agent Management"]
+            Registry["Agent Registry<br/>Health Monitoring<br/>Heartbeat Tracking"]
+            Dispatcher["Task Dispatcher<br/>Queue & Executor"]
+        end
+
+        subgraph Storage["Persistence"]
+            TaskDB["Task History<br/>Sessions<br/>SQLite/PostgreSQL"]
+        end
+
+        subgraph Observability["Observability"]
+            Tracker["Usage Tracker<br/>Tokens • Costs<br/>Performance Metrics"]
+        end
+
+        APIGateway --> KeywordRouter
+        APIGateway --> LLMRouter
+        APIGateway --> Registry
+        APIGateway --> Dispatcher
+        APIGateway --> TaskDB
+        APIGateway --> Tracker
+        KeywordRouter --> Dispatcher
+        LLMRouter --> Dispatcher
+        Dispatcher --> Registry
+        Registry --> Tracker
+        Dispatcher --> TaskDB
+    end
+
+    subgraph Agents["Agent Layer"]
+        subgraph Helix["Helix (Coding Agent)<br/>Port 8000"]
+            HelixSupervisor["LangGraph Supervisor<br/>ReAct Loop"]
+            CoderAgent["Coder Agent"]
+            ExplorerAgent1["Explorer Agent"]
+            HelixSupervisor --> CoderAgent
+            HelixSupervisor --> ExplorerAgent1
+        end
+
+        subgraph HelixTools["Helix Tools"]
+            CodeTools["File I/O • Git<br/>GitHub API • Shell"]
+            AST["Tree-sitter AST<br/>Symbol Search"]
+            CodeTools -.-> AST
+        end
+
+        subgraph Other["Other Agents"]
+            PlannerAgent["Planner<br/>Decomposition"]
+            ResearcherAgent["Researcher<br/>Web Search"]
+            TriagerAgent["Triager<br/>Issue Labels"]
+        end
+
+        CoderAgent --> CodeTools
+        ExplorerAgent1 --> CodeTools
+    end
+
+    subgraph External["External Services"]
+        GitHub["GitHub API<br/>Code Hosting"]
+        DuckDuckGo["DuckDuckGo<br/>Web Search"]
+        Ollama["Ollama/LLM<br/>Local or Cloud"]
+    end
+
+    CodeTools -->|Git Push| GitHub
+    ResearcherAgent -->|Search| DuckDuckGo
+    HelixSupervisor -->|Inference| Ollama
+    LLMRouter -->|Routing Decision| Ollama
+
+    API -->|Agent Registration<br/>Task /run| Dispatcher
+    Dispatcher -->|Route Task| HelixSupervisor
+    Dispatcher -->|Route Task| PlannerAgent
+    Dispatcher -->|Route Task| ResearcherAgent
+    Dispatcher -->|Route Task| TriagerAgent
+
+    HelixSupervisor -->|Result| Dispatcher
+    PlannerAgent -->|Result| Dispatcher
+    ResearcherAgent -->|Result| Dispatcher
+    TriagerAgent -->|Result| Dispatcher
+
+    Dispatcher -->|Store| TaskDB
+    Dispatcher -->|Track| Tracker
+
+    style Client fill:#dbe4ff,stroke:#4a9eed,stroke-width:2px
+    style Platform fill:#e5dbff,stroke:#8b5cf6,stroke-width:2px
+    style Agents fill:#d3f9d8,stroke:#22c55e,stroke-width:2px
+    style Network fill:#fff3bf,stroke:#f59e0b,stroke-width:1px
+    style External fill:#ffc9c9,stroke:#ef4444,stroke-width:1px
+    style Dashboard fill:#a5d8ff,stroke:#4a9eed,stroke-width:2px
+    style APIGateway fill:#d0bfff,stroke:#8b5cf6,stroke-width:2px
+    style Helix fill:#c3fae8,stroke:#22c55e,stroke-width:2px
+    style Other fill:#ffc9c9,stroke:#ec4899,stroke-width:1px
