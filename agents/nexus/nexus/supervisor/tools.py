@@ -222,6 +222,83 @@ def terraform_plan(
         return json.dumps({"error": str(e)})
 
 
+@tool
+async def ask_helix(
+    question: Annotated[str, "Code-related question or code to review"],
+) -> str:
+    """Ask Helix (Code Agent) for help with code generation, review, or search.
+
+    Use this when deploying code or needing code review before deployment.
+    """
+    import httpx
+    try:
+        async with httpx.AsyncClient(timeout=120) as client:
+            response = await client.post(
+                "http://localhost:9000/tasks",
+                json={"message": question},
+            )
+            result = response.json()
+            return json.dumps({
+                "agent": "helix",
+                "result": result.get("content", ""),
+                "status": result.get("status"),
+            })
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
+
+@tool
+async def ask_flux(
+    question: Annotated[str, "Data analysis or metrics question"],
+) -> str:
+    """Ask Flux (Data Agent) for help with data analysis, metrics, or dashboards.
+
+    Use this when you need to analyze logs, metrics, or performance data.
+    """
+    import httpx
+    try:
+        async with httpx.AsyncClient(timeout=120) as client:
+            response = await client.post(
+                "http://localhost:9000/tasks",
+                json={"message": question},
+            )
+            result = response.json()
+            return json.dumps({
+                "agent": "flux",
+                "result": result.get("content", ""),
+                "status": result.get("status"),
+            })
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
+
+@tool
+def discover_available_agents() -> str:
+    """Discover what agents are available on the platform and their capabilities.
+
+    Use this to find out which agents can help with your task.
+    """
+    import httpx
+    try:
+        response = httpx.get("http://localhost:9000/agents")
+        agents = response.json()
+        summary = []
+        for agent in agents:
+            summary.append({
+                "name": agent["name"],
+                "status": agent["status"],
+                "capabilities": agent.get("capabilities", [])[:3],
+            })
+        # Deduplicate
+        unique = {a["name"]: a for a in summary}
+        return json.dumps({
+            "agents": list(unique.values()),
+            "count": len(unique),
+        })
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
+
 def get_tools():
     """Return list of all available tools."""
     return [
@@ -230,4 +307,7 @@ def get_tools():
         monitor_health,
         cloud_info,
         terraform_plan,
+        ask_helix,
+        ask_flux,
+        discover_available_agents,
     ]

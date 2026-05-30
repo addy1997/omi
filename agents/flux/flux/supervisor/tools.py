@@ -139,6 +139,83 @@ def web_search(
         return json.dumps({"error": f"Search failed: {str(e)}"})
 
 
+@tool
+async def ask_helix(
+    question: Annotated[str, "Code-related question or code to review"],
+) -> str:
+    """Ask Helix (Code Agent) for help with code generation, review, or search.
+
+    Use this when you need code help, code review, or to search the codebase.
+    """
+    import httpx
+    try:
+        async with httpx.AsyncClient(timeout=120) as client:
+            response = await client.post(
+                "http://localhost:9000/tasks",
+                json={"message": question},
+            )
+            result = response.json()
+            return json.dumps({
+                "agent": "helix",
+                "result": result.get("content", ""),
+                "status": result.get("status"),
+            })
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
+
+@tool
+async def ask_nexus(
+    question: Annotated[str, "DevOps/Infrastructure question or task"],
+) -> str:
+    """Ask Nexus (DevOps Agent) for help with infrastructure, deployments, Kubernetes.
+
+    Use this when you need DevOps help, cloud operations, or infrastructure setup.
+    """
+    import httpx
+    try:
+        async with httpx.AsyncClient(timeout=120) as client:
+            response = await client.post(
+                "http://localhost:9000/tasks",
+                json={"message": question},
+            )
+            result = response.json()
+            return json.dumps({
+                "agent": "nexus",
+                "result": result.get("content", ""),
+                "status": result.get("status"),
+            })
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
+
+@tool
+def discover_available_agents() -> str:
+    """Discover what agents are available on the platform and their capabilities.
+
+    Use this to find out which agents can help with your task.
+    """
+    import httpx
+    try:
+        response = httpx.get("http://localhost:9000/agents")
+        agents = response.json()
+        summary = []
+        for agent in agents:
+            summary.append({
+                "name": agent["name"],
+                "status": agent["status"],
+                "capabilities": agent.get("capabilities", [])[:3],
+            })
+        # Deduplicate
+        unique = {a["name"]: a for a in summary}
+        return json.dumps({
+            "agents": list(unique.values()),
+            "count": len(unique),
+        })
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
+
 def get_tools():
     """Return list of all available tools."""
     return [
@@ -146,4 +223,7 @@ def get_tools():
         analyze_csv,
         generate_chart,
         web_search,
+        ask_helix,
+        ask_nexus,
+        discover_available_agents,
     ]
