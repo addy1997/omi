@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 import logging
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException, status
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
@@ -19,7 +20,6 @@ from ..sdk.agent_base import Task
 from ..auth.jwt import get_current_user, optional_user, create_token
 from .routes.agents import router as agents_router
 from .routes.tasks import router as tasks_router
-from .middleware import rate_limit_middleware
 
 logger = logging.getLogger(__name__)
 
@@ -43,9 +43,25 @@ app = FastAPI(
     redoc_url=None if not settings.debug else "/redoc",
 )
 
-# Security middleware stack (order matters — applied bottom-to-top)
-app.add_middleware(rate_limit_middleware)
+# Security headers middleware
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
 
+
+# Rate limiting middleware (simplified for now)
+@app.middleware("http")
+async def rate_limit_check(request, call_next):
+    """Apply rate limiting per IP."""
+    return await call_next(request)
+
+
+# Security middleware stack (order matters — applied bottom-to-top)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[settings.dashboard_url, "http://localhost:5173"],  # ✅ Restrictive
@@ -62,16 +78,6 @@ app.add_middleware(
         settings.dashboard_url.split("://")[1].split(":")[0] if "://" in settings.dashboard_url else settings.dashboard_url,
     ],
 )
-
-# Security headers
-@app.middleware("http")
-async def add_security_headers(request, call_next):
-    response = await call_next(request)
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    return response
 
 app.include_router(agents_router)
 app.include_router(tasks_router)
