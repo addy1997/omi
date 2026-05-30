@@ -1,13 +1,15 @@
 from pathlib import Path
 from dotenv import load_dotenv
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 load_dotenv(override=False)
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="NEXUS_", env_file=".env", extra="ignore")
+
     # LLM
-    supervisor_model: str = "anthropic/claude-sonnet-4-5"
-    planner_model: str = "anthropic/claude-sonnet-4-5"
+    supervisor_model: str = "ollama/llama3.2"
+    planner_model: str = "ollama/llama3.2"
 
     # Storage
     db_url: str = "sqlite+aiosqlite:///./nexus.db"

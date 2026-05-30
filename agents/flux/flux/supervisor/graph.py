@@ -49,11 +49,8 @@ async def flux_supervisor(state: FluxState) -> FluxState:
     # Bind tools to model
     model_with_tools = model.bind_tools(tools)
 
-    # Call model
-    response = await model_with_tools.ainvoke({
-        "messages": messages,
-        "system": _FLUX_SYSTEM,
-    })
+    # Call model with messages
+    response = await model_with_tools.ainvoke(messages)
 
     # Add response to messages
     return {
