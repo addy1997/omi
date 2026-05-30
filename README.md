@@ -48,29 +48,24 @@ The platform intelligently routes each user request to the right agent (or agent
 
 ## Platform Architecture
 
-```
-┌─────────────────────────────────────────┐
-│        React Dashboard (5173)            │
-│   Chat • Agents • Tasks • Metrics        │
-└──────────────┬──────────────────────────┘
-               │ HTTP + WebSocket
-┌──────────────▼──────────────────────────┐
-│   Omi Platform API (9000)                │
-│  ┌──────────────────────────────────┐   │
-│  │ Task Router (keyword + LLM)       │   │
-│  │ Agent Registry & Health Monitor   │   │
-│  │ Task Dispatcher & Executor        │   │
-│  │ Observability (tokens, costs)     │   │
-│  └──────────────────────────────────┘   │
-└──────────────┬──────────────────────────┘
-               │ Agent Registration + /run endpoint
-     ┌─────────┼─────────┬─────────┬──────────┐
-     │         │         │         │          │
- ┌───▼───┐ ┌──▼──┐ ┌───▼──┐ ┌──▼──┐ ┌──▼───┐
- │Helix  │ │Expl.│ │Plan. │ │Rsch.│ │Triage│
- │(8000) │ │     │ │      │ │     │ │      │
- └───────┘ └─────┘ └──────┘ └─────┘ └──────┘
-```
+![Omi Architecture Diagram](https://excalidraw.com/#json=FGLqbhqYmik1WKjsLonYW,Ib1ydj6LA2Nv-0rksEbL-w)
+
+**Architecture Overview:**
+
+- **Client Layer** — React dashboard streams tasks via HTTP + WebSocket
+- **Platform Layer** — FastAPI gateway with pluggable components:
+  - **Task Router** — routes by keyword heuristics or LLM judgment
+  - **Agent Registry** — tracks availability, capabilities, health
+  - **Storage** — persistent task history, sessions (SQLite or PostgreSQL)
+  - **Observability** — token counting, cost tracking, latency metrics
+- **Agent Layer** — five specialist agents, each with isolated toolsets:
+  - **Helix** — code generation, testing, commits (write access)
+  - **Explorer** — code search, architecture review (read-only)
+  - **Planner** — feature decomposition into issues
+  - **Researcher** — web search, documentation lookup
+  - **Triager** — issue labeling, backlog management
+
+Each agent runs in a **git worktree** (safe branching) with **Docker sandbox** for shell execution. Read-only agents cannot write code or create PRs.
 
 ---
 
