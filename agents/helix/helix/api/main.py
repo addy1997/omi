@@ -10,11 +10,13 @@ Endpoints:
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import uuid
 from contextlib import asynccontextmanager
 from typing import Any
 
+import httpx
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -27,6 +29,38 @@ from ..supervisor.graph import run as omi_run
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+
+    # Register with platform
+    agent_id = str(uuid.uuid4())
+    try:
+        async with httpx.AsyncClient() as client:
+            await client.post(
+                "http://localhost:9000/agents/register",
+                json={
+                    "id": agent_id,
+                    "name": "helix",
+                    "capabilities": ["code_analysis", "code_generation", "debugging"],
+                    "version": "0.1.0",
+                },
+                timeout=5.0,
+            )
+        # Start heartbeat
+        async def heartbeat_loop():
+            while True:
+                await asyncio.sleep(30)
+                try:
+                    async with httpx.AsyncClient() as client:
+                        await client.post(
+                            f"http://localhost:9000/agents/{agent_id}/heartbeat",
+                            timeout=5.0,
+                        )
+                except:
+                    pass
+
+        asyncio.create_task(heartbeat_loop())
+    except Exception as e:
+        print(f"Failed to register with platform: {e}")
+
     yield
 
 

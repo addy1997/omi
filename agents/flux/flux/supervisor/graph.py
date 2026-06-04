@@ -18,26 +18,33 @@ class FluxState(TypedDict):
 
 _FLUX_SYSTEM = """You are Flux, a data analysis specialist agent on the Omi platform.
 
-Your job is to handle data exploration, SQL generation, analytics, and visualization.
+Your ONLY job is to handle data exploration, SQL generation, analytics, visualization, and data generation.
+You MUST use tools to complete tasks - never just write code or explanations.
 
-AVAILABLE TOOLS:
-- sql_query: Execute SQL on DuckDB or PostgreSQL
-- analyze_csv: Profile and analyze CSV/Parquet files
-- generate_chart: Create interactive Plotly visualizations
-- web_search: Find public datasets and documentation
+AVAILABLE TOOLS - USE THESE IMMEDIATELY:
+1. generate_sample_data(dataset_type, num_months) → Creates data
+   - dataset_type: "sales", "website_traffic", "inventory"
+   - Returns: JSON with data_records ready for charting
 
-WORKFLOW:
-1. Understand the user's data request
-2. If they need SQL: write query, execute, show results
-3. If they need analysis: profile data, find patterns, explain findings
-4. If they need visualization: generate interactive charts with Plotly
-5. Always explain your reasoning
+2. generate_chart(data, chart_type, x_column, y_column, title) → Creates Plotly HTML
+   - chart_type: "line", "bar", "scatter", "area", "histogram", "box"
+   - data: list of dicts from generate_sample_data
+   - Returns: HTML that renders in browser
 
-CONSTRAINTS:
-- Never modify production databases without explicit confirmation
-- Always show sample results before running expensive queries
-- Limit result sets to 1000 rows max
-- Suggest indexes for slow queries"""
+3. sql_query(query, database) → Execute SQL
+
+4. analyze_csv(file_path) → Profile CSV files
+
+WHEN USER ASKS FOR A CHART:
+1. ALWAYS call generate_sample_data() first (unless data is provided)
+2. THEN call generate_chart() with the data
+3. Return ONLY the HTML output from generate_chart()
+
+IMPORTANT:
+- If user mentions "chart", "plot", "graph", "visualize" → USE generate_chart()
+- If user mentions "data" with no specific data → USE generate_sample_data()
+- Always use tools - NEVER just explain how to do it
+- Always return the actual tool output (HTML for charts)"""
 
 
 async def flux_supervisor(state: FluxState) -> FluxState:
@@ -46,10 +53,45 @@ async def flux_supervisor(state: FluxState) -> FluxState:
     model = get_model("supervisor")
     tools = get_tools()
 
-    # Bind tools to model
-    model_with_tools = model.bind_tools(tools)
+    # Get user message to check what they want
+    user_msg = next((m.content for m in reversed(messages) if isinstance(m, HumanMessage)), "")
 
-    # Call model with messages
+    # Check if user wants a chart
+    if any(word in user_msg.lower() for word in ["chart", "plot", "graph", "visualize", "plotly"]):
+        from .tools import generate_sample_data, generate_chart
+        import json
+
+        # Step 1: Generate sample data
+        data_result = generate_sample_data.invoke({
+            "dataset_type": "sales",
+            "num_months": 12
+        })
+        data_json = json.loads(data_result)
+
+        if "error" not in data_json:
+            # Step 2: Generate chart
+            data_records = data_json.get("data_records", [])
+            chart_result = generate_chart.invoke({
+                "data": data_records,
+                "chart_type": "line",
+                "x_column": "date",
+                "y_column": "revenue",
+                "title": "Revenue Trends"
+            })
+
+            # Extract HTML from chart result JSON
+            chart_json = json.loads(chart_result)
+            html_content = chart_json.get("html", chart_result)
+
+            # Return chart HTML directly
+            response = AIMessage(content=html_content)
+            return {
+                **state,
+                "messages": messages + [response],
+            }
+
+    # Default: use LLM with tools for other queries
+    model_with_tools = model.bind_tools(tools)
     response = await model_with_tools.ainvoke(messages)
 
     # Add response to messages
@@ -163,9 +205,21 @@ async def run(
     try:
         final_state = await graph.ainvoke(initial_state)
 
-        # Extract final response
+        # Extract final response - look for tool results (HTML charts) first
         messages = final_state["messages"]
         if messages:
+            # Look for HTML/chart content (from tool results)
+            for msg in reversed(messages):
+                if hasattr(msg, "content") and msg.content:
+                    content = msg.content
+                    # Return HTML charts as-is
+                    if "<div id=" in content or "<html" in content:
+                        return content
+                    # Return non-empty text responses
+                    if content.strip() and not content.startswith("assistant"):
+                        return content
+
+            # Fallback: return last message
             last_msg = messages[-1]
             if hasattr(last_msg, "content"):
                 return last_msg.content

@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     jwt_expire_minutes: int = 60 * 24   # 1 day
 
     # ── Storage ──────────────────────────────────────────────
-    db_url: str = "sqlite+aiosqlite:///./platform.db"
+    db_url: str = f"sqlite+aiosqlite:///{Path(__file__).parent.parent.parent.parent / 'platform.db'}"
 
     # ── Agent Health ─────────────────────────────────────────
     heartbeat_interval_s: int = 30      # how often agents must ping

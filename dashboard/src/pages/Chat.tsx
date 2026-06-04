@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Bot, User, Zap, ChevronDown } from "lucide-react";
+import { Send, Bot, User, Zap, ChevronDown, Download } from "lucide-react";
 import { api, createWS, type AgentInfo } from "../api";
 
 interface Message {
@@ -14,32 +14,87 @@ interface Message {
   status?: string;
 }
 
+function ChartViewer({ html }: { html: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const downloadChart = () => {
+    const link = document.createElement("a");
+    link.href = `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
+    link.download = `chart-${Date.now()}.html`;
+    link.click();
+  };
+
+  return (
+    <div style={{
+      backgroundColor: "#161b27",
+      borderRadius: "0.6rem",
+      border: "1px solid #1e2535",
+      padding: "0.75rem",
+      marginTop: "0.5rem"
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+        <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600 }}>Plotly Chart</span>
+        <button onClick={downloadChart}
+          style={{
+            display: "flex", alignItems: "center", gap: "0.3rem",
+            padding: "0.25rem 0.5rem",
+            backgroundColor: "#3b82f6",
+            color: "#fff",
+            border: "none",
+            borderRadius: "0.3rem",
+            fontSize: "0.7rem",
+            cursor: "pointer"
+          }}>
+          <Download size={12} /> Download
+        </button>
+      </div>
+      <div ref={containerRef}
+        style={{
+          backgroundColor: "#0f1117",
+          borderRadius: "0.4rem",
+          border: "1px solid #1e2535",
+          minHeight: "400px",
+          maxHeight: "600px",
+          overflow: "auto"
+        }}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    </div>
+  );
+}
+
 function Bubble({ msg }: { msg: Message }) {
   const isUser = msg.role === "user";
+  const isChart = !isUser && msg.content.includes("<div id=\"chart");
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.22 }}
       style={{ display: "flex", justifyContent: isUser ? "flex-end" : "flex-start",
-        marginBottom: "1rem", gap: "0.6rem", alignItems: "flex-end" }}>
+        marginBottom: "1rem", gap: "0.6rem", alignItems: isChart ? "flex-start" : "flex-end" }}>
       {!isUser && (
         <div style={{ width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
           background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
-          display: "flex", alignItems: "center", justifyContent: "center" }}>
+          display: "flex", alignItems: "center", justifyContent: "center", marginTop: isChart ? "0.5rem" : 0 }}>
           <Bot size={14} color="#fff" />
         </div>
       )}
-      <div style={{ maxWidth: "75%" }}>
-        <div style={{
-          padding: "0.65rem 1rem",
-          borderRadius: isUser ? "1rem 1rem 0.15rem 1rem" : "1rem 1rem 1rem 0.15rem",
-          backgroundColor: isUser ? "#3b82f6" : "#1e2535",
-          color: isUser ? "#fff" : "#e2e8f0",
-          fontSize: "0.85rem", lineHeight: 1.65, whiteSpace: "pre-wrap",
-        }}>
-          {msg.content}
-        </div>
+      <div style={{ maxWidth: isChart ? "90%" : "75%" }}>
+        {isChart ? (
+          <ChartViewer html={msg.content} />
+        ) : (
+          <div style={{
+            padding: "0.65rem 1rem",
+            borderRadius: isUser ? "1rem 1rem 0.15rem 1rem" : "1rem 1rem 1rem 0.15rem",
+            backgroundColor: isUser ? "#3b82f6" : "#1e2535",
+            color: isUser ? "#fff" : "#e2e8f0",
+            fontSize: "0.85rem", lineHeight: 1.65, whiteSpace: "pre-wrap",
+          }}>
+            {msg.content}
+          </div>
+        )}
         {!isUser && msg.agent_id && (
           <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.35rem",
             fontSize: "0.65rem", color: "#475569", paddingLeft: "0.25rem" }}>
