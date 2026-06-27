@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omi Platform — Technical Design Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        @media print {
+            html { font-size: 12px; }
+            body { margin: 0; padding: 0; }
+            .page-break { page-break-after: always; }
+            h1 { page-break-after: avoid; }
+            h2 { page-break-after: avoid; }
+            pre, table, .diagram-container { page-break-inside: avoid; }
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            background: #fff;
+            padding: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .meta {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            color: #34495e;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            margin-top: 1.5rem;
+            margin-bottom: 0.7rem;
+        }
+
+        h4 {
+            font-size: 1.1rem;
+            color: #34495e;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            text-align: justify;
+        }
+
+        ul, ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.95rem;
+            background: #fff;
+        }
+
+        th {
+            background: #2c3e50;
+            color: #fff;
+            padding: 0.7rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 0.7rem;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        pre {
+            background: #f4f4f4;
+            border-left: 4px solid #2c3e50;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            border-radius: 4px;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            background: #f4f4f4;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            color: #c7254e;
+        }
+
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+
+        .diagram-container {
+            background: #f8f9fa;
+            border: 2px solid #ddd;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .diagram-container svg {
+            max-width: 100%;
+            height: auto;
+            display: inline-block;
+        }
+
+        .diagram-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .note {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+
+        .note strong {
+            color: #2c3e50;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+
+        .toc {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 6px;
+            margin: 2rem 0;
+        }
+
+        .toc h3 {
+            margin-top: 0;
+        }
+
+        .toc ul {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .toc li {
+            margin-bottom: 0.5rem;
+        }
+
+        .toc a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+
+        @media print {
+            body { padding: 1rem; }
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.5rem; }
+            .diagram-container { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Omi Platform</h1>
+        <p style="font-size: 1.2rem; color: #666;">Technical Design Document</p>
+        <div class="meta">
+            <span>Version: 0.1.0</span>
+            <span>Date: June 2026</span>
+            <span>Status: Active Development</span>
+        </div>
+    </div>
+
+    <div class="toc">
+        <h3>Table of Contents</h3>
+        <ul>
+            <li><a href="#exec-summary">1. Executive Summary</a></li>
+            <li><a href="#principles">2. Architectural Principles</a></li>
+            <li><a href="#components">3. System Components</a></li>
+            <li><a href="#api-contracts">4. API Contracts</a></li>
+            <li><a href="#routing">5. Task Routing Flow</a></li>
+            <li><a href="#lifecycle">6. Task Execution Lifecycle</a></li>
+            <li><a href="#architecture">7. Architecture Diagrams</a></li>
+            <li><a href="#security">8. Security & Compliance</a></li>
+            <li><a href="#scaling">9. Scaling & Deployment</a></li>
+            <li><a href="#extensions">10. Extension Points</a></li>
+            <li><a href="#metrics">11. Key Metrics & SLOs</a></li>
+        </ul>
+    </div>
+
+    <h2 id="exec-summary">1. Executive Summary</h2>
+    <p>Omi Platform is a <strong>multi-agent orchestration system</strong> that enables seamless integration and management of distributed AI agents. It provides:</p>
+    <ul>
+        <li><strong>Single entry point</strong> for all clients to submit tasks to a pool of agents</li>
+        <li><strong>Intelligent routing</strong> that matches tasks to the best available agent based on capability, keywords, or LLM decision</li>
+        <li><strong>Task chaining</strong> where outputs of one task feed into the next for multi-step workflows</li>
+        <li><strong>Collaboration mode</strong> to solicit simultaneous responses from multiple agents</li>
+        <li><strong>Built-in observability</strong> for cost tracking, token usage, and performance metrics</li>
+        <li><strong>Zero external API dependency</strong> — agents run independently, platform only coordinates</li>
+    </ul>
+
+    <h2 id="principles">2. Architectural Principles</h2>
+
+    <h3>2.1 Core Principles</h3>
+    <table>
+        <tr>
+            <th>Principle</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><strong>Agent Autonomy</strong></td>
+            <td>Agents are self-contained services with their own lifecycle. The platform does not manage agent internals.</td>
+        </tr>
+        <tr>
+            <td><strong>Stateless Routing</strong></td>
+            <td>Task routing is deterministic: explicit → capability hint → keyword match → LLM fallback.</td>
+        </tr>
+        <tr>
+            <td><strong>Heartbeat-driven Status</strong></td>
+            <td>Agents must heartbeat every 30s or they're marked offline. No polling from platform.</td>
+        </tr>
+        <tr>
+            <td><strong>Request-scoped Context</strong></td>
+            <td>Task context and metadata flow through the chain; no persistent session state on platform.</td>
+        </tr>
+        <tr>
+            <td><strong>Cost & Token Transparency</strong></td>
+            <td>Every task result tracks tokens, cost, and duration for billing and optimization.</td>
+        </tr>
+        <tr>
+            <td><strong>Security by Default</strong></td>
+            <td>JWT authentication, CORS restrictions, trusted host validation, security headers on all responses.</td>
+        </tr>
+    </table>
+
+    <h3>2.2 Design Trade-offs</h3>
+    <table>
+        <tr>
+            <th>Choice</th>
+            <th>Why</th>
+            <th>Trade-off</th>
+        </tr>
+        <tr>
+            <td><strong>Heartbeat over WebSocket</strong></td>
+            <td>Simple, stateless monitoring for distributed agents</td>
+            <td>Agents must implement heartbeat loop; slower failure detection</td>
+        </tr>
+        <tr>
+            <td><strong>Keyword + LLM routing</strong></td>
+            <td>Fast fallback without ML infrastructure</td>
+            <td>Less optimal for novel task types; LLM routing adds ~15ms latency</td>
+        </tr>
+        <tr>
+            <td><strong>In-process SQLite</strong></td>
+            <td>Easier deployment in dev/single-server scenarios</td>
+            <td>Not suitable for large-scale multi-instance deployments</td>
+        </tr>
+        <tr>
+            <td><strong>Task chain vs. DAG</strong></td>
+            <td>Simple, easy to reason about sequential dependencies</td>
+            <td>No support for parallel task execution or complex workflows</td>
+        </tr>
+    </table>
+
+    <h2 id="components">3. System Components</h2>
+
+    <h3>3.1 Component Overview</h3>
+    
+    <div class="diagram-container">
+        <div class="diagram-title">Figure 1: High-Level System Architecture</div>
+        HTMLEOF
+
+# Read and embed the first SVG
+cat /mnt/d/dev/addy_wp/omi/diagrams/01-architecture.svg >> /mnt/d/dev/addy_wp/omi/TECHNICAL_DESIGN_WITH_DIAGRAMS.html
+
+cat >> /mnt/d/dev/addy_wp/omi/TECHNICAL_DESIGN_WITH_DIAGRAMS.html << 'HTMLEOF'
+    </div>
+
+    <h3>3.2 Core Components</h3>
+
+    <h4>API Gateway (FastAPI)</h4>
+    <p>Single HTTP entry point for all clients. Defines routes: <code>/agents</code>, <code>/tasks</code>, <code>/auth</code>, <code>/health</code>, <code>/ws</code>.</p>
+    <ul>
+        <li>Middleware: CORS, trusted host validation, security headers</li>
+        <li>Lifespan management: initializes registry, storage, observability on startup</li>
+        <li>Accepts task submissions (REST + WebSocket)</li>
+        <li>Enforces JWT authentication</li>
+        <li>Streams WebSocket results in real-time</li>
+    </ul>
+
+    <h4>Route Manager (Dispatcher)</h4>
+    <p>Intelligent task-to-agent mapping using a 4-level cascade:</p>
+    <ol>
+        <li><strong>Explicit</strong> — <code>task.agent_id</code> is set → direct route</li>
+        <li><strong>Capability Hint</strong> — <code>task.metadata["capability"]</code> matches a tag</li>
+        <li><strong>Keyword Matching</strong> — Analyze message for patterns</li>
+        <li><strong>LLM Fallback</strong> — Ask Claude Haiku to pick the best agent</li>
+    </ol>
+    <p>Levels 1-3 are fast (&lt; 10ms); level 4 adds ~15ms but is semantically aware.</p>
+
+    <h4>Registry Store</h4>
+    <p>Maintains source of truth for agent availability and capabilities.</p>
+    <ul>
+        <li><code>register_agent()</code> — Agent joins (idempotent; re-register = update)</li>
+        <li><code>deregister_agent()</code> — Agent leaves</li>
+        <li><code>heartbeat()</code> — Agent pings every 30s; updates status</li>
+        <li><code>list_agents()</code> — Query by status or capability</li>
+        <li><code>find_agents_for_task()</code> — Return online agents matching capabilities</li>
+    </ul>
+    <p>Background process: Health monitor runs every 30s, marks agents OFFLINE if no heartbeat for 90s.</p>
+
+    <h4>Task Executor</h4>
+    <p>Orchestrates task submission and result persistence.</p>
+    <ul>
+        <li>Save task to storage (status=PENDING)</li>
+        <li>Route task to an agent</li>
+        <li>Call agent's <code>/run</code> endpoint (300s timeout)</li>
+        <li>Persist TaskResult to storage</li>
+        <li>Record usage (tokens, cost, duration)</li>
+    </ul>
+
+    <h4>Storage Layer (SQLAlchemy + SQLite)</h4>
+    <p><strong>TaskRecord</strong> — Immutable log of every task execution (indexed by session_id, agent_id)</p>
+    <p><strong>AgentRecord</strong> — Agent registry (indexed by name, status, capabilities)</p>
+    <p><strong>UsageRecord</strong> — Cost & performance tracking (indexed by task_id, agent_id)</p>
+
+    <h4>Authentication (JWT)</h4>
+    <ul>
+        <li>Tokens issued at <code>/auth/token</code> after validating username/password</li>
+        <li>Token embedded in WebSocket query param: <code>ws://host:9000/ws/SESSION_ID?token=JWT_TOKEN</code></li>
+        <li>Tokens expire after 24 hours (configurable)</li>
+        <li>In production: integrate with LDAP, OAuth2, etc.</li>
+    </ul>
+
+    <h4>Observability Tracker</h4>
+    <p>Real-time tracking of platform usage across all agents.</p>
+    <ul>
+        <li>Total tasks executed</li>
+        <li>Total tokens consumed (for billing)</li>
+        <li>Total cost (USD)</li>
+        <li>Average duration per task</li>
+        <li>Per-agent breakdowns</li>
+    </ul>
+
+    <h4>Agent SDK (agent_base.py)</h4>
+    <p>Base class every agent must implement:</p>
+    <ul>
+        <li>Abstract method: <code>async handle(task: Task) → TaskResult</code></li>
+        <li>Lifecycle: <code>register()</code>, <code>deregister()</code>, <code>send_heartbeat()</code></li>
+        <li>Helper: <code>make_agent_server(agent)</code> returns FastAPI app with <code>/run</code>, <code>/health</code>, <code>/info</code> endpoints</li>
+    </ul>
+
+    <h2 id="api-contracts">4. API Contracts</h2>
+
+    <h3>4.1 Task Submission (REST)</h3>
+    <pre><code>POST /tasks
+Content-Type: application/json
+Authorization: Bearer &lt;JWT_TOKEN&gt;
+
+{
+  "message": "Write a unit test for the login function",
+  "session_id": "user-session-123",
+  "agent_id": null,
+  "context": {"file": "auth.py", "framework": "pytest"},
+  "metadata": {"capability": "testing"}
+}
+
+Response (200):
+{
+  "task_id": "abc123",
+  "agent_id": "testing-agent-01",
+  "status": "completed",
+  "content": "Here's a unit test...",
+  "tokens_used": 340,
+  "cost_usd": 0.000051,
+  "duration_ms": 1240,
+  "error": null
+}</code></pre>
+
+    <h3>4.2 WebSocket Streaming</h3>
+    <pre><code>WebSocket: /ws/{session_id}?token=&lt;JWT_TOKEN&gt;
+
+Client sends:
+{"message": "Analyze this bug report", "agent_id": null, "context": {...}}
+
+Server streams:
+{"type": "start"}
+{"type": "result", "task_id": "...", "agent_id": "...", "content": "..."}
+{"type": "done"}</code></pre>
+
+    <h3>4.3 Task Chaining</h3>
+    <pre><code>POST /tasks/chain
+[
+  {"message": "Identify security issues", "metadata": {"capability": "code_review"}},
+  {"message": "Based on the issues found, write a fix", "metadata": {"capability": "code_generation"}}
+]
+
+Response: [TaskResult1, TaskResult2]
+(output of Task1 becomes context for Task2)</code></pre>
+
+    <h3>4.4 Agent Management</h3>
+    <table>
+        <tr>
+            <th>Endpoint</th>
+            <th>Method</th>
+            <th>Purpose</th>
+        </tr>
+        <tr>
+            <td><code>/agents/register</code></td>
+            <td>POST</td>
+            <td>Agent joins the platform</td>
+        </tr>
+        <tr>
+            <td><code>/agents/{agent_id}</code></td>
+            <td>GET</td>
+            <td>Get agent details</td>
+        </tr>
+        <tr>
+            <td><code>/agents</code></td>
+            <td>GET</td>
+            <td>List agents (with filters)</td>
+        </tr>
+        <tr>
+            <td><code>/agents/{agent_id}/heartbeat</code></td>
+            <td>POST</td>
+            <td>Keep-alive ping</td>
+        </tr>
+        <tr>
+            <td><code>/agents/{agent_id}</code></td>
+            <td>DELETE</td>
+            <td>Deregister agent</td>
+        </tr>
+    </table>
+
+    <h3>4.5 Analytics & Monitoring</h3>
+    <table>
+        <tr>
+            <th>Endpoint</th>
+            <th>Purpose</th>
+        </tr>
+        <tr>
+            <td><code>GET /health</code></td>
+            <td>Platform health + online agents</td>
+        </tr>
+        <tr>
+            <td><code>GET /health/ready</code></td>
+            <td>Kubernetes readiness probe</td>
+        </tr>
+        <tr>
+            <td><code>GET /tasks?session_id=...&agent_id=...&limit=50</code></td>
+            <td>Task history</td>
+        </tr>
+        <tr>
+            <td><code>GET /usage/summary?agent_id=...</code></td>
+            <td>Usage stats (tasks, tokens, cost)</td>
+        </tr>
+        <tr>
+            <td><code>GET /usage/per-agent</code></td>
+            <td>Per-agent usage breakdown</td>
+        </tr>
+    </table>
+
+    <h2 id="routing">5. Task Routing Flow</h2>
+    
+    <div class="diagram-container">
+        <div class="diagram-title">Figure 2: Task Routing Decision Tree</div>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 900" width="1000" height="900">
+  <defs>
+    <style>
+      .decision { fill: #fff9e6; stroke: #f39c12; stroke-width: 2; }
+      .process { fill: #e8f4f8; stroke: #2c3e50; stroke-width: 2; }
+      .success { fill: #d5f4e6; stroke: #27ae60; stroke-width: 2; }
+      .fail { fill: #fadbd8; stroke: #e74c3c; stroke-width: 2; }
+      .text-dark { fill: #2c3e50; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; }
+      .text-small { fill: #34495e; font-family: Arial, sans-serif; font-size: 11px; }
+      .arrow { stroke: #34495e; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .label { fill: #666; font-family: Arial, sans-serif; font-size: 10px; font-weight: bold; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#34495e" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="500" y="30" text-anchor="middle" class="text-dark" font-size="16">Task Routing Decision Flow</text>
+
+  <!-- Task Arrives -->
+  <rect x="350" y="50" width="300" height="60" class="process" rx="5"/>
+  <text x="500" y="75" text-anchor="middle" class="text-dark">Task Arrives</text>
+  <text x="500" y="92" text-anchor="middle" class="text-small">message, agent_id, metadata, context</text>
+
+  <!-- Decision 1: Agent ID -->
+  <path d="M 500 110 L 500 150" class="arrow"/>
+  <polygon points="500,150 490,135 510,135" fill="#f39c12"/>
+  
+  <rect x="350" y="150" width="300" height="70" class="decision" rx="5"/>
+  <text x="500" y="175" text-anchor="middle" class="text-dark">Is agent_id specified?</text>
+  <text x="500" y="195" text-anchor="middle" class="text-small">(Explicit routing)</text>
+
+  <!-- YES path -->
+  <path d="M 350 185 L 200 185 L 200 270" class="arrow"/>
+  <text x="280" y="175" class="label">YES</text>
+
+  <rect x="100" y="270" width="200" height="60" class="success" rx="5"/>
+  <text x="200" y="295" text-anchor="middle" class="text-dark">Route to Agent</text>
+  <text x="200" y="310" text-anchor="middle" class="text-small">Direct (no LLM)</text>
+
+  <!-- NO path -->
+  <path d="M 500 220 L 500 260" class="arrow"/>
+  <text x="520" y="240" class="label">NO</text>
+
+  <!-- Decision 2: Capability -->
+  <rect x="350" y="260" width="300" height="70" class="decision" rx="5"/>
+  <text x="500" y="285" text-anchor="middle" class="text-dark">Capability in metadata?</text>
+  <text x="500" y="305" text-anchor="middle" class="text-small">task.metadata["capability"]</text>
+
+  <!-- Capability YES -->
+  <path d="M 650" y="295 L 800 295 L 800 370" class="arrow"/>
+  <text x="720" y="285" class="label">YES</text>
+
+  <rect x="700" y="370" width="200" height="60" class="success" rx="5"/>
+  <text x="800" y="395" text-anchor="middle" class="text-dark">Match Agents</text>
+  <text x="800" y="410" text-anchor="middle" class="text-small">By capability tag</text>
+
+  <!-- Capability NO -->
+  <path d="M 500 330 L 500 380" class="arrow"/>
+  <text x="520" y="360" class="label">NO</text>
+
+  <!-- Decision 3: Keywords -->
+  <rect x="350" y="380" width="300" height="70" class="decision" rx="5"/>
+  <text x="500" y="405" text-anchor="middle" class="text-dark">Keywords in message?</text>
+  <text x="500" y="425" text-anchor="middle" class="text-small">write, test, review, deploy, etc.</text>
+
+  <!-- Keywords YES -->
+  <path d="M 350 415 L 200 415 L 200 490" class="arrow"/>
+  <text x="280" y="405" class="label">YES</text>
+
+  <rect x="100" y="490" width="200" height="60" class="success" rx="5"/>
+  <text x="200" y="515" text-anchor="middle" class="text-dark">Match Agents</text>
+  <text x="200" y="530" text-anchor="middle" class="text-small">By inferred capability</text>
+
+  <!-- Keywords NO -->
+  <path d="M 500 450 L 500 500" class="arrow"/>
+  <text x="520" y="480" class="label">NO</text>
+
+  <!-- LLM Route -->
+  <rect x="350" y="500" width="300" height="70" class="decision" rx="5"/>
+  <text x="500" y="525" text-anchor="middle" class="text-dark">LLM Route (Fallback)</text>
+  <text x="500" y="545" text-anchor="middle" class="text-small">Claude Haiku: "Pick best agent"</text>
+
+  <!-- LLM Result -->
+  <path d="M 500 570 L 500 600" class="arrow"/>
+  <rect x="350" y="600" width="300" height="70" class="success" rx="5"/>
+  <text x="500" y="625" text-anchor="middle" class="text-dark">Route Decision Made</text>
+  <text x="500" y="645" text-anchor="middle" class="text-small">Agent selected, check if ONLINE</text>
+
+  <!-- Final Check -->
+  <path d="M 500 670 L 500 700" class="arrow"/>
+  <rect x="350" y="700" width="300" height="70" class="decision" rx="5"/>
+  <text x="500" y="725" text-anchor="middle" class="text-dark">Agent status = ONLINE?</text>
+  <text x="500" y="745" text-anchor="middle" class="text-small">(Registry check)</text>
+
+  <!-- Success -->
+  <path d="M 650 735 L 800 735" class="arrow"/>
+  <text x="720" y="725" class="label">YES</text>
+  <rect x="700" y="700" width="200" height="70" class="success" rx="5"/>
+  <text x="800" y="725" text-anchor="middle" class="text-dark">Execute Task</text>
+  <text x="800" y="745" text-anchor="middle" class="text-small">Send to agent HTTP /run</text>
+
+  <!-- Failure -->
+  <path d="M 350 735 L 200 735" class="arrow"/>
+  <text x="280" y="725" class="label">NO</text>
+  <rect x="0" y="700" width="200" height="70" class="fail" rx="5"/>
+  <text x="100" y="725" text-anchor="middle" class="text-dark">FAILED</text>
+  <text x="100" y="745" text-anchor="middle" class="text-small">No agent available</text>
+</svg>    </div>
+
+    <h2 id="lifecycle">6. Task Execution Lifecycle</h2>
+
+    <div class="diagram-container">
+        <div class="diagram-title">Figure 3: Agent Lifecycle State Machine</div>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600">
+  <defs>
+    <style>
+      .state-box { fill: #e8f4f8; stroke: #2c3e50; stroke-width: 2; }
+      .state-online { fill: #d5f4e6; stroke: #27ae60; stroke-width: 3; }
+      .state-offline { fill: #fadbd8; stroke: #e74c3c; stroke-width: 3; }
+      .state-error { fill: #f4d4d8; stroke: #c0392b; stroke-width: 3; }
+      .text-dark { fill: #2c3e50; font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; }
+      .text-small { fill: #34495e; font-family: Arial, sans-serif; font-size: 11px; }
+      .transition { stroke: #34495e; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .label { fill: #555; font-family: Arial, sans-serif; font-size: 10px; font-style: italic; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#34495e" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="450" y="30" text-anchor="middle" class="text-dark" font-size="16">Agent Lifecycle State Machine</text>
+
+  <!-- Unregistered State -->
+  <rect x="50" y="80" width="180" height="80" class="state-box" rx="8"/>
+  <text x="140" y="110" text-anchor="middle" class="text-dark">UNREGISTERED</text>
+  <text x="140" y="130" text-anchor="middle" class="text-small">Agent not running</text>
+  <text x="140" y="145" text-anchor="middle" class="text-small">or not joined</text>
+
+  <!-- Arrow 1 -->
+  <path d="M 230 120 Q 330 80 400 100" class="transition" stroke-dasharray="5,5"/>
+  <text x="310" y="85" text-anchor="middle" class="label">agent.register()</text>
+
+  <!-- ONLINE State -->
+  <rect x="400" y="50" width="180" height="120" class="state-online" rx="8"/>
+  <text x="490" y="85" text-anchor="middle" class="text-dark" font-size="15">ONLINE</text>
+  <text x="490" y="105" text-anchor="middle" class="text-small">✓ Registered</text>
+  <text x="490" y="120" text-anchor="middle" class="text-small">✓ Heartbeat fresh</text>
+  <text x="490" y="135" text-anchor="middle" class="text-small">✓ Ready for tasks</text>
+
+  <!-- Tasks processing loop -->
+  <circle cx="490" cy="300" r="50" fill="none" stroke="#3498db" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="490" y="300" text-anchor="middle" class="text-dark" font-size="12">Tasks</text>
+  <text x="490" y="318" text-anchor="middle" class="text-small">Processed</text>
+
+  <!-- Arrow to tasks -->
+  <path d="M 490 170 L 490 250" class="transition"/>
+  <text x="510" y="210" class="label">Every 30s</text>
+  <text x="510" y="225" class="label">Heartbeat</text>
+
+  <!-- Arrow back from tasks -->
+  <path d="M 540 300 Q 590 200 530 170" class="transition"/>
+  <text x="580" y="235" class="label">Update</text>
+  <text x="580" y="250" class="label">last_heartbeat</text>
+
+  <!-- OFFLINE State -->
+  <rect x="650" y="80" width="180" height="120" class="state-offline" rx="8"/>
+  <text x="740" y="115" text-anchor="middle" class="text-dark" font-size="15">OFFLINE</text>
+  <text x="740" y="135" text-anchor="middle" class="text-small">✗ Heartbeat stale</text>
+  <text x="740" y="150" text-anchor="middle" class="text-small">✗ No routing to agent</text>
+  <text x="740" y="165" text-anchor="middle" class="text-small">(90s+ no ping)</text>
+
+  <!-- Arrow to OFFLINE -->
+  <path d="M 580 110 L 650 110" class="transition"/>
+  <text x="615" y="100" text-anchor="middle" class="label">No heartbeat</text>
+  <text x="615" y="115" text-anchor="middle" class="label">90+ seconds</text>
+
+  <!-- Arrow back to ONLINE -->
+  <path d="M 650 130 Q 590 200 580 130" class="transition"/>
+  <text x="600" y="180" text-anchor="middle" class="label">Agent restarts,</text>
+  <text x="600" y="195" text-anchor="middle" class="label">heartbeats resume</text>
+
+  <!-- DEREGISTERED State -->
+  <rect x="650" y="280" width="180" height="80" class="state-box" rx="8"/>
+  <text x="740" y="310" text-anchor="middle" class="text-dark">DEREGISTERED</text>
+  <text x="740" y="330" text-anchor="middle" class="text-small">Manually removed</text>
+  <text x="740" y="345" text-anchor="middle" class="text-small">from registry</text>
+
+  <!-- Arrow from OFFLINE to DEREGISTERED -->
+  <path d="M 740 200 L 740 280" class="transition"/>
+  <text x="760" y="240" text-anchor="middle" class="label">Manual admin</text>
+  <text x="760" y="255" text-anchor="middle" class="label">deregister</text>
+
+  <!-- Task execution detail box -->
+  <rect x="50" y="280" width="300" height="180" fill="none" stroke="#ddd" stroke-width="1" stroke-dasharray="3,3" rx="5"/>
+  <text x="200" y="300" text-anchor="middle" class="text-dark" font-size="12">Task Execution Detail</text>
+  
+  <text x="70" y="325" class="text-small">1. Platform checks agent in registry</text>
+  <text x="70" y="345" class="text-small">2. Status must be ONLINE</text>
+  <text x="70" y="365" class="text-small">3. HTTP POST /run sent to agent</text>
+  <text x="70" y="385" class="text-small">4. Agent processes task</text>
+  <text x="70" y="405" class="text-small">5. Result returned to platform</text>
+  <text x="70" y="425" class="text-small">6. Result stored and tracked</text>
+  <text x="70" y="445" class="text-small">7. Response sent to client</text>
+</svg>    </div>
+
+    <div class="diagram-container">
+        <div class="diagram-title">Figure 4: Task Execution Lifecycle (8 Steps)</div>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 850" width="1000" height="850">
+  <defs>
+    <style>
+      .step-box { fill: #e8f4f8; stroke: #2c3e50; stroke-width: 2; }
+      .db-box { fill: #f4e4d4; stroke: #d35400; stroke-width: 2; }
+      .process-box { fill: #d5f4e6; stroke: #27ae60; stroke-width: 2; }
+      .text-dark { fill: #2c3e50; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; }
+      .text-small { fill: #34495e; font-family: Arial, sans-serif; font-size: 10px; }
+      .step-num { fill: #fff; background: #2c3e50; font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; }
+      .arrow { stroke: #34495e; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#34495e" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="500" y="30" text-anchor="middle" class="text-dark" font-size="16">Task Execution Lifecycle (8 Steps)</text>
+
+  <!-- Step 1: Task Submitted -->
+  <rect x="350" y="60" width="300" height="60" class="step-box" rx="5"/>
+  <circle cx="380" cy="90" r="18" fill="#2c3e50"/>
+  <text x="380" y="95" text-anchor="middle" class="text-small" fill="#fff" font-weight="bold">1</text>
+  <text x="470" y="85" class="text-dark">Task Submitted</text>
+  <text x="470" y="105" class="text-small">Client → Platform</text>
+
+  <!-- Step 2: Save Task -->
+  <path d="M 500 120 L 500 155" class="arrow"/>
+  <rect x="350" y="155" width="300" height="60" class="db-box" rx="5"/>
+  <circle cx="380" cy="185" r="18" fill="#d35400"/>
+  <text x="380" y="190" text-anchor="middle" class="text-small" fill="#fff" font-weight="bold">2</text>
+  <text x="470" y="175" class="text-dark">Save to DB</text>
+  <text x="470" y="195" class="text-small">TaskRecord (PENDING)</text>
+
+  <!-- Step 3: Route Task -->
+  <path d="M 500 215 L 500 250" class="arrow"/>
+  <rect x="350" y="250" width="300" height="60" class="process-box" rx="5"/>
+  <circle cx="380" cy="280" r="18" fill="#27ae60"/>
+  <text x="380" y="285" text-anchor="middle" class="text-small" fill="#fff" font-weight="bold">3</text>
+  <text x="470" y="270" class="text-dark">Route Task</text>
+  <text x="470" y="290" class="text-small">4-level cascade → Agent</text>
+
+  <!-- Decision Diamond -->
+  <path d="M 500 310 L 600 350 L 500 390 L 400 350 Z" fill="#fff9e6" stroke="#f39c12" stroke-width="2"/>
+  <text x="500" y="355" text-anchor="middle" class="text-dark" font-size="12">Agent</text>
+  <text x="500" y="370" text-anchor="middle" class="text-dark" font-size="12">Found?</text>
+
+  <!-- No path (FAILED) -->
+  <path d="M 400 350 L 200 350" class="arrow"/>
+  <text x="300" y="340" text-anchor="middle" class="text-small">NO</text>
+  <rect x="50" y="320" width="150" height="60" class="step-box" rx="5"/>
+  <text x="125" y="345" text-anchor="middle" class="text-dark" font-weight="bold">FAILED</text>
+  <text x="125" y="365" text-anchor="middle" class="text-small">No agent available</text>
+
+  <!-- Yes path -->
+  <path d="M 500 390 L 500 425" class="arrow"/>
+  <text x="520" y="410" text-anchor="middle" class="text-small">YES</text>
+
+  <!-- Step 4: Call Agent -->
+  <rect x="350" y="425" width="300" height="60" class="step-box" rx="5"/>
+  <circle cx="380" cy="455" r="18" fill="#2c3e50"/>
+  <text x="380" y="460" text-anchor="middle" class="text-small" fill="#fff" font-weight="bold">4</text>
+  <text x="470" y="445" class="text-dark">Call Agent /run</text>
+  <text x="470" y="465" class="text-small">HTTP POST (timeout: 300s)</text>
+
+  <!-- Step 5: Result or Error -->
+  <path d="M 500 485 L 500 520" class="arrow"/>
+  <path d="M 350 545 L 200 545 L 200 640" class="arrow"/>
+  <text x="280" y="540" text-anchor="middle" class="text-small">FAILURE</text>
+  
+  <path d="M 650 545 L 800 545 L 800 640" class="arrow"/>
+  <text x="720" y="540" text-anchor="middle" class="text-small">SUCCESS</text>
+
+  <!-- Error Box -->
+  <rect x="100" y="640" width="200" height="60" class="step-box" rx="5"/>
+  <circle cx="130" cy="670" r="18" fill="#2c3e50"/>
+  <text x="130" y="675" text-anchor="middle" class="text-small" fill="#fff" font-weight="bold">5E</text>
+  <text x="200" y="655" text-anchor="middle" class="text-dark">Error Result</text>
+  <text x="200" y="675" text-anchor="middle" class="text-small">status: FAILED</text>
+
+  <!-- Success Box -->
+  <rect x="700" y="640" width="200" height="60" class="process-box" rx="5"/>
+  <circle cx="730" cy="670" r="18" fill="#27ae60"/>
+  <text x="730" y="675" text-anchor="middle" class="text-small" fill="#fff" font-weight="bold">5S</text>
+  <text x="800" y="655" text-anchor="middle" class="text-dark">Parse Result</text>
+  <text x="800" y="675" text-anchor="middle" class="text-small">status: COMPLETED</text>
+
+  <!-- Converge arrows -->
+  <path d="M 200 700 L 500 735" class="arrow"/>
+  <path d="M 800 700 L 500 735" class="arrow"/>
+
+  <!-- Step 6: Store Result -->
+  <rect x="350" y="735" width="300" height="60" class="db-box" rx="5"/>
+  <circle cx="380" cy="765" r="18" fill="#d35400"/>
+  <text x="380" y="770" text-anchor="middle" class="text-small" fill="#fff" font-weight="bold">6</text>
+  <text x="470" y="750" class="text-dark">Store Result to DB</text>
+  <text x="470" y="770" class="text-small">Update TaskRecord</text>
+
+  <!-- Step 7: Record Usage -->
+  <path d="M 500 795 L 500 830" class="arrow"/>
+  <rect x="350" y="830" width="300" height="60" class="db-box" rx="5" style="stroke-dasharray: 4,4"/>
+  <circle cx="380" cy="860" r="18" fill="#d35400"/>
+  <text x="380" y="865" text-anchor="middle" class="text-small" fill="#fff" font-weight="bold">7</text>
+  <text x="470" y="845" class="text-dark">Record Usage</text>
+  <text x="470" y="865" class="text-small">tokens, cost, duration</text>
+</svg>    </div>
+
+    <h2 id="architecture">7. Architecture Diagrams</h2>
+
+    <h3>7.1 Architecture Overview</h3>
+    <p>The diagrams above illustrate the complete architecture of the Omi Platform:</p>
+    <ul>
+        <li><strong>Figure 1</strong> shows how clients connect to the platform and how the platform coordinates with agents</li>
+        <li><strong>Figure 2</strong> demonstrates the intelligent 4-level routing cascade that determines which agent handles each task</li>
+        <li><strong>Figure 3</strong> illustrates the agent lifecycle, from registration through active service to eventual deregistration</li>
+        <li><strong>Figure 4</strong> breaks down the 8-step task execution process from submission to completion</li>
+    </ul>
+
+    <h3>7.2 Key Design Patterns</h3>
+    
+    <h4>Task Chain Execution</h4>
+    <p>When a client submits multiple tasks via <code>POST /tasks/chain</code>, the platform executes them sequentially:</p>
+    <ol>
+        <li>Execute Task 1 → Get Result 1</li>
+        <li>Extract result content and store as <code>prior_result</code></li>
+        <li>Pass <code>prior_result</code> in the context of Task 2</li>
+        <li>Execute Task 2 (which may use <code>prior_result</code>) → Get Result 2</li>
+        <li>Repeat for Task 3, Task 4, etc.</li>
+        <li>If any task fails → stop chain and return partial results</li>
+    </ol>
+
+    <h4>WebSocket Streaming</h4>
+    <p>Clients can stream tasks and results in real-time via WebSocket:</p>
+    <ol>
+        <li>Client opens WebSocket: <code>/ws/SESSION_ID?token=JWT_TOKEN</code></li>
+        <li>Platform validates JWT token from query params</li>
+        <li>Client sends task JSON: <code>{"message": "...", "agent_id": null, ...}</code></li>
+        <li>Platform broadcasts events:
+            <ul>
+                <li><code>{"type": "start"}</code> — Task processing begun</li>
+                <li><code>{"type": "result", ...}</code> — Task completed with result</li>
+                <li><code>{"type": "done"}</code> — Result finalized</li>
+            </ul>
+        </li>
+        <li>Client can send more tasks or close connection</li>
+    </ol>
+
+    <h4>Multi-Agent Collaboration</h4>
+    <p>Send the same task to multiple agents and synthesize their outputs:</p>
+    <ol>
+        <li><code>POST /tasks/collaborate</code> with message and <code>agent_ids: ["agent-1", "agent-2", ...]</code></li>
+        <li>Platform submits the same message to all specified agents in parallel</li>
+        <li>Collects all results</li>
+        <li>Joins them with separator: <code>**[agent-1]**\n...\n\n---\n\n**[agent-2]**\n...</code></li>
+        <li>Returns combined result to client</li>
+    </ol>
+
+    <h2 id="security">8. Security & Compliance</h2>
+
+    <h3>8.1 Authentication & Authorization</h3>
+    <ul>
+        <li><strong>JWT tokens</strong> issued at <code>/auth/token</code> after credential validation</li>
+        <li><strong>Token scope:</strong> User identity (sub) and role</li>
+        <li><strong>Enforcement:</strong> Middleware checks Bearer token on protected routes</li>
+        <li><strong>Expiration:</strong> 24 hours (configurable)</li>
+        <li><strong>Production:</strong> Replace dev auth with LDAP, OAuth2, or SAML</li>
+    </ul>
+
+    <h3>8.2 Network Security</h3>
+    <ul>
+        <li><strong>CORS:</strong> Restricted to dashboard URL and localhost (dev)</li>
+        <li><strong>Trusted Hosts:</strong> Only allow requests from whitelisted hosts</li>
+        <li><strong>Security Headers:</strong> HSTS, X-Content-Type-Options, X-Frame-Options, X-XSS-Protection</li>
+        <li><strong>WebSocket Auth:</strong> Token must be provided in query params</li>
+    </ul>
+
+    <h3>8.3 Input Validation</h3>
+    <ul>
+        <li><strong>Message size limit:</strong> 10 KB per task message</li>
+        <li><strong>WebSocket payload:</strong> 100 KB limit</li>
+        <li><strong>Credential length:</strong> 255 chars max</li>
+        <li><strong>Agent ID format:</strong> UUID or alphanumeric (validated on registration)</li>
+    </ul>
+
+    <h3>8.4 Resource Limits</h3>
+    <ul>
+        <li><strong>Task timeout:</strong> 300 seconds (5 minutes)</li>
+        <li><strong>Heartbeat timeout:</strong> 90 seconds (agents mark OFFLINE after no ping)</li>
+        <li><strong>Max concurrent requests:</strong> Dependent on FastAPI worker pool</li>
+        <li><strong>Database connections:</strong> Connection pooling (SQLAlchemy)</li>
+    </ul>
+
+    <h2 id="scaling">9. Scaling & Deployment Considerations</h2>
+
+    <h3>9.1 Single Instance (Current)</h3>
+    <ul>
+        <li>✅ Suitable for &lt; 10 agents, &lt; 1000 tasks/day</li>
+        <li>✅ SQLite database on local disk</li>
+        <li>✅ Minimal operational overhead</li>
+        <li>⚠️ Not HA; no failover</li>
+    </ul>
+
+    <h3>9.2 Multi-Instance (Future Path)</h3>
+    <div class="note">
+        <strong>Requirements for horizontal scaling:</strong>
+        <ol>
+            <li>Shared database — Migrate from SQLite to PostgreSQL</li>
+            <li>Distributed registry — Use Redis for agent heartbeat cache</li>
+            <li>Message queue — Kafka/RabbitMQ for async task queuing</li>
+            <li>Load balancer — Nginx/HAProxy to distribute requests</li>
+            <li>Session affinity — Optional; WebSocket sessions can move across instances</li>
+        </ol>
+    </div>
+
+    <h3>9.3 Observability for Operations</h3>
+    <ul>
+        <li><strong>Metrics:</strong> Prometheus-compatible endpoint for Grafana</li>
+        <li><strong>Logs:</strong> Structured JSON logs to stdout (for aggregation)</li>
+        <li><strong>Traces:</strong> OpenTelemetry instrumentation (optional)</li>
+        <li><strong>Dashboards:</strong> Show online agents, task success rate, cost per agent</li>
+    </ul>
+
+    <h2 id="extensions">10. Extension Points</h2>
+
+    <h3>10.1 Custom Routing Strategy</h3>
+    <p>Override <code>route()</code> in <code>dispatcher/router.py</code> to implement:</p>
+    <ul>
+        <li>ML-based agent selection (ranking model)</li>
+        <li>Load-based routing (prefer less busy agents)</li>
+        <li>Latency-based routing (prefer fast agents)</li>
+        <li>Regional routing (geo-distributed agents)</li>
+    </ul>
+
+    <h3>10.2 Custom Storage Backend</h3>
+    <p>Replace SQLAlchemy engine with:</p>
+    <ul>
+        <li>MongoDB (document storage)</li>
+        <li>Cassandra (time-series data)</li>
+        <li>DynamoDB (serverless)</li>
+    </ul>
+
+    <h3>10.3 Custom Authentication</h3>
+    <p>Replace JWT with:</p>
+    <ul>
+        <li>OAuth2 + OpenID Connect</li>
+        <li>SAML 2.0</li>
+        <li>Kerberos/Active Directory</li>
+    </ul>
+
+    <h3>10.4 Agent Middleware</h3>
+    <p>Wrap <code>make_agent_server()</code> to add:</p>
+    <ul>
+        <li>Rate limiting per user/role</li>
+        <li>Request/response logging</li>
+        <li>Custom metrics collection</li>
+        <li>Request tracing</li>
+    </ul>
+
+    <h2 id="metrics">11. Key Metrics & SLOs</h2>
+    <table>
+        <tr>
+            <th>Metric</th>
+            <th>Target</th>
+            <th>Notes</th>
+        </tr>
+        <tr>
+            <td>Task Success Rate</td>
+            <td>&gt; 99%</td>
+            <td>Includes timeouts, agent failures</td>
+        </tr>
+        <tr>
+            <td>Agent Availability</td>
+            <td>&gt; 99.5%</td>
+            <td>Uptime of registered agents</td>
+        </tr>
+        <tr>
+            <td>Task Latency (P99)</td>
+            <td>&lt; 5 sec</td>
+            <td>Excluding agent execution time</td>
+        </tr>
+        <tr>
+            <td>Routing Latency (P99)</td>
+            <td>&lt; 100 ms</td>
+            <td>Time to pick agent (incl. LLM calls)</td>
+        </tr>
+        <tr>
+            <td>Platform Uptime</td>
+            <td>&gt; 99.9%</td>
+            <td>Exclude infra failures</td>
+        </tr>
+        <tr>
+            <td>Cost per Task</td>
+            <td>&lt; $0.01 USD</td>
+            <td>Token cost + platform overhead</td>
+        </tr>
+    </table>
+
+    <div style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid #ecf0f1; text-align: center; color: #666; font-size: 0.9rem;">
+        <p><strong>Omi Platform — Technical Design Document</strong></p>
+        <p>Version 0.1.0 | June 2026 | Status: Active Development</p>
+        <p style="margin-top: 1rem;">With Professional SVG Diagrams</p>
+        <p style="margin-top: 0.5rem; font-size: 0.8rem;">Generated: 2026-06-08</p>
+    </div>
+</body>
+</html>

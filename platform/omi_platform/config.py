@@ -24,8 +24,8 @@ class Settings(BaseSettings):
     heartbeat_timeout_s: int = 90       # mark offline after this
 
     # ── Routing LLM (for task routing) ───────────────────────
-    router_model: str = "anthropic/claude-haiku-4-5"
-    anthropic_api_key: str = ""
+    router_model: str = "ollama/llama3.2"  # local, free, no API key needed
+    anthropic_api_key: str = ""  # deprecated; using ollama for routing now
     openai_api_key: str = ""
 
     # ── Dashboard (for CORS) ─────────────────────────────────

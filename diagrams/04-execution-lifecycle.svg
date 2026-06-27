@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 850" width="1000" height="850">
+  <defs>
+    <style>
+      .step-box { fill: #e8f4f8; stroke: #2c3e50; stroke-width: 2; }
+      .db-box { fill: #f4e4d4; stroke: #d35400; stroke-width: 2; }
+      .process-box { fill: #d5f4e6; stroke: #27ae60; stroke-width: 2; }
+      .text-dark { fill: #2c3e50; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; }
+      .text-small { fill: #34495e; font-family: Arial, sans-serif; font-size: 10px; }
+      .step-num { fill: #fff; background: #2c3e50; font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; }
+      .arrow { stroke: #34495e; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#34495e" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="500" y="30" text-anchor="middle" class="text-dark" font-size="16">Task Execution Lifecycle (8 Steps)</text>
+
+  <!-- Step 1: Task Submitted -->
+  <rect x="350" y="60" width="300" height="60" class="step-box" rx="5"/>
+  <circle cx="380" cy="90" r="18" fill="#2c3e50"/>
+  <text x="380" y="95" text-anchor="middle" class="text-small" fill="#fff" font-weight="bold">1</text>
+  <text x="470" y="85" class="text-dark">Task Submitted</text>
+  <text x="470" y="105" class="text-small">Client → Platform</text>
+
+  <!-- Step 2: Save Task -->
+  <path d="M 500 120 L 500 155" class="arrow"/>
+  <rect x="350" y="155" width="300" height="60" class="db-box" rx="5"/>
+  <circle cx="380" cy="185" r="18" fill="#d35400"/>
+  <text x="380" y="190" text-anchor="middle" class="text-small" fill="#fff" font-weight="bold">2</text>
+  <text x="470" y="175" class="text-dark">Save to DB</text>
+  <text x="470" y="195" class="text-small">TaskRecord (PENDING)</text>
+
+  <!-- Step 3: Route Task -->
+  <path d="M 500 215 L 500 250" class="arrow"/>
+  <rect x="350" y="250" width="300" height="60" class="process-box" rx="5"/>
+  <circle cx="380" cy="280" r="18" fill="#27ae60"/>
+  <text x="380" y="285" text-anchor="middle" class="text-small" fill="#fff" font-weight="bold">3</text>
+  <text x="470" y="270" class="text-dark">Route Task</text>
+  <text x="470" y="290" class="text-small">4-level cascade → Agent</text>
+
+  <!-- Decision Diamond -->
+  <path d="M 500 310 L 600 350 L 500 390 L 400 350 Z" fill="#fff9e6" stroke="#f39c12" stroke-width="2"/>
+  <text x="500" y="355" text-anchor="middle" class="text-dark" font-size="12">Agent</text>
+  <text x="500" y="370" text-anchor="middle" class="text-dark" font-size="12">Found?</text>
+
+  <!-- No path (FAILED) -->
+  <path d="M 400 350 L 200 350" class="arrow"/>
+  <text x="300" y="340" text-anchor="middle" class="text-small">NO</text>
+  <rect x="50" y="320" width="150" height="60" class="step-box" rx="5"/>
+  <text x="125" y="345" text-anchor="middle" class="text-dark" font-weight="bold">FAILED</text>
+  <text x="125" y="365" text-anchor="middle" class="text-small">No agent available</text>
+
+  <!-- Yes path -->
+  <path d="M 500 390 L 500 425" class="arrow"/>
+  <text x="520" y="410" text-anchor="middle" class="text-small">YES</text>
+
+  <!-- Step 4: Call Agent -->
+  <rect x="350" y="425" width="300" height="60" class="step-box" rx="5"/>
+  <circle cx="380" cy="455" r="18" fill="#2c3e50"/>
+  <text x="380" y="460" text-anchor="middle" class="text-small" fill="#fff" font-weight="bold">4</text>
+  <text x="470" y="445" class="text-dark">Call Agent /run</text>
+  <text x="470" y="465" class="text-small">HTTP POST (timeout: 300s)</text>
+
+  <!-- Step 5: Result or Error -->
+  <path d="M 500 485 L 500 520" class="arrow"/>
+  <path d="M 350 545 L 200 545 L 200 640" class="arrow"/>
+  <text x="280" y="540" text-anchor="middle" class="text-small">FAILURE</text>
+  
+  <path d="M 650 545 L 800 545 L 800 640" class="arrow"/>
+  <text x="720" y="540" text-anchor="middle" class="text-small">SUCCESS</text>
+
+  <!-- Error Box -->
+  <rect x="100" y="640" width="200" height="60" class="step-box" rx="5"/>
+  <circle cx="130" cy="670" r="18" fill="#2c3e50"/>
+  <text x="130" y="675" text-anchor="middle" class="text-small" fill="#fff" font-weight="bold">5E</text>
+  <text x="200" y="655" text-anchor="middle" class="text-dark">Error Result</text>
+  <text x="200" y="675" text-anchor="middle" class="text-small">status: FAILED</text>
+
+  <!-- Success Box -->
+  <rect x="700" y="640" width="200" height="60" class="process-box" rx="5"/>
+  <circle cx="730" cy="670" r="18" fill="#27ae60"/>
+  <text x="730" y="675" text-anchor="middle" class="text-small" fill="#fff" font-weight="bold">5S</text>
+  <text x="800" y="655" text-anchor="middle" class="text-dark">Parse Result</text>
+  <text x="800" y="675" text-anchor="middle" class="text-small">status: COMPLETED</text>
+
+  <!-- Converge arrows -->
+  <path d="M 200 700 L 500 735" class="arrow"/>
+  <path d="M 800 700 L 500 735" class="arrow"/>
+
+  <!-- Step 6: Store Result -->
+  <rect x="350" y="735" width="300" height="60" class="db-box" rx="5"/>
+  <circle cx="380" cy="765" r="18" fill="#d35400"/>
+  <text x="380" y="770" text-anchor="middle" class="text-small" fill="#fff" font-weight="bold">6</text>
+  <text x="470" y="750" class="text-dark">Store Result to DB</text>
+  <text x="470" y="770" class="text-small">Update TaskRecord</text>
+
+  <!-- Step 7: Record Usage -->
+  <path d="M 500 795 L 500 830" class="arrow"/>
+  <rect x="350" y="830" width="300" height="60" class="db-box" rx="5" style="stroke-dasharray: 4,4"/>
+  <circle cx="380" cy="860" r="18" fill="#d35400"/>
+  <text x="380" y="865" text-anchor="middle" class="text-small" fill="#fff" font-weight="bold">7</text>
+  <text x="470" y="845" class="text-dark">Record Usage</text>
+  <text x="470" y="865" class="text-small">tokens, cost, duration</text>
+</svg>

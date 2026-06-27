@@ -37,7 +37,8 @@ class HelixAgent(AgentBase):
         Capability.PLANNING,
         Capability.ISSUE_TRIAGE,
         Capability.WEB_RESEARCH,
-        Capability.TESTING,
+        # TESTING is owned by the dedicated Vera agent; helix no longer claims it
+        # so capability-routed test tasks resolve to the specialist.
     ]
     version = "0.1.0"
 

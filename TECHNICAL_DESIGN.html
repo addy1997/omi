@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omi Platform — Technical Design Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        @media print {
+            html { font-size: 12px; }
+            body { margin: 0; padding: 0; }
+            .page-break { page-break-after: always; }
+            h1 { page-break-after: avoid; }
+            h2 { page-break-after: avoid; }
+            pre, table { page-break-inside: avoid; }
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            background: #fff;
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .meta {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 1rem;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            color: #34495e;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            margin-top: 1.5rem;
+            margin-bottom: 0.7rem;
+        }
+
+        h4 {
+            font-size: 1.1rem;
+            color: #34495e;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            text-align: justify;
+        }
+
+        ul, ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.95rem;
+            background: #fff;
+        }
+
+        th {
+            background: #2c3e50;
+            color: #fff;
+            padding: 0.7rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 0.7rem;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        pre {
+            background: #f4f4f4;
+            border-left: 4px solid #2c3e50;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            border-radius: 4px;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            background: #f4f4f4;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            color: #c7254e;
+        }
+
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+
+        .diagram {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            overflow-x: auto;
+        }
+
+        .note {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+
+        .note strong {
+            color: #2c3e50;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+
+        .toc {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 6px;
+            margin: 2rem 0;
+        }
+
+        .toc h3 {
+            margin-top: 0;
+        }
+
+        .toc ul {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .toc li {
+            margin-bottom: 0.5rem;
+        }
+
+        .toc a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+
+        .flow-diagram {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 6px;
+            margin: 1.5rem 0;
+            border: 1px dashed #bbb;
+        }
+
+        @media print {
+            body { padding: 1rem; }
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Omi Platform</h1>
+        <p style="font-size: 1.2rem; color: #666;">Technical Design Document</p>
+        <div class="meta">
+            <span>Version: 0.1.0</span>
+            <span>Date: June 2026</span>
+            <span>Status: Active Development</span>
+        </div>
+    </div>
+
+    <div class="toc">
+        <h3>Table of Contents</h3>
+        <ul>
+            <li><a href="#exec-summary">1. Executive Summary</a></li>
+            <li><a href="#principles">2. Architectural Principles</a></li>
+            <li><a href="#components">3. System Components</a></li>
+            <li><a href="#api-contracts">4. API Contracts</a></li>
+            <li><a href="#routing">5. Task Routing Flow</a></li>
+            <li><a href="#lifecycle">6. Task Execution Lifecycle</a></li>
+            <li><a href="#architecture">7. Architecture Diagrams</a></li>
+            <li><a href="#security">8. Security & Compliance</a></li>
+            <li><a href="#scaling">9. Scaling & Deployment</a></li>
+            <li><a href="#extensions">10. Extension Points</a></li>
+            <li><a href="#metrics">11. Key Metrics & SLOs</a></li>
+        </ul>
+    </div>
+
+    <h2 id="exec-summary">1. Executive Summary</h2>
+    <p>Omi Platform is a <strong>multi-agent orchestration system</strong> that enables seamless integration and management of distributed AI agents. It provides:</p>
+    <ul>
+        <li><strong>Single entry point</strong> for all clients to submit tasks to a pool of agents</li>
+        <li><strong>Intelligent routing</strong> that matches tasks to the best available agent based on capability, keywords, or LLM decision</li>
+        <li><strong>Task chaining</strong> where outputs of one task feed into the next for multi-step workflows</li>
+        <li><strong>Collaboration mode</strong> to solicit simultaneous responses from multiple agents</li>
+        <li><strong>Built-in observability</strong> for cost tracking, token usage, and performance metrics</li>
+        <li><strong>Zero external API dependency</strong> — agents run independently, platform only coordinates</li>
+    </ul>
+
+    <h2 id="principles">2. Architectural Principles</h2>
+
+    <h3>2.1 Core Principles</h3>
+    <table>
+        <tr>
+            <th>Principle</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><strong>Agent Autonomy</strong></td>
+            <td>Agents are self-contained services with their own lifecycle. The platform does not manage agent internals.</td>
+        </tr>
+        <tr>
+            <td><strong>Stateless Routing</strong></td>
+            <td>Task routing is deterministic: explicit → capability hint → keyword match → LLM fallback.</td>
+        </tr>
+        <tr>
+            <td><strong>Heartbeat-driven Status</strong></td>
+            <td>Agents must heartbeat every 30s or they're marked offline. No polling from platform.</td>
+        </tr>
+        <tr>
+            <td><strong>Request-scoped Context</strong></td>
+            <td>Task context and metadata flow through the chain; no persistent session state on platform.</td>
+        </tr>
+        <tr>
+            <td><strong>Cost & Token Transparency</strong></td>
+            <td>Every task result tracks tokens, cost, and duration for billing and optimization.</td>
+        </tr>
+        <tr>
+            <td><strong>Security by Default</strong></td>
+            <td>JWT authentication, CORS restrictions, trusted host validation, security headers on all responses.</td>
+        </tr>
+    </table>
+
+    <h3>2.2 Design Trade-offs</h3>
+    <table>
+        <tr>
+            <th>Choice</th>
+            <th>Why</th>
+            <th>Trade-off</th>
+        </tr>
+        <tr>
+            <td><strong>Heartbeat over WebSocket</strong></td>
+            <td>Simple, stateless monitoring for distributed agents</td>
+            <td>Agents must implement heartbeat loop; slower failure detection</td>
+        </tr>
+        <tr>
+            <td><strong>Keyword + LLM routing</strong></td>
+            <td>Fast fallback without ML infrastructure</td>
+            <td>Less optimal for novel task types; LLM routing adds ~15ms latency</td>
+        </tr>
+        <tr>
+            <td><strong>In-process SQLite</strong></td>
+            <td>Easier deployment in dev/single-server scenarios</td>
+            <td>Not suitable for large-scale multi-instance deployments</td>
+        </tr>
+        <tr>
+            <td><strong>Task chain vs. DAG</strong></td>
+            <td>Simple, easy to reason about sequential dependencies</td>
+            <td>No support for parallel task execution or complex workflows</td>
+        </tr>
+    </table>
+
+    <h2 id="components">3. System Components</h2>
+
+    <h3>3.1 Component Overview</h3>
+    <div class="diagram">
+┌─────────────────────────────────────────────────────────────────┐
+│                      Omi Platform (9000)                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────┐   │
+│  │   API Gateway    │  │   WebSocket      │  │   Auth (JWT) │   │
+│  │   (FastAPI)      │  │   Streaming      │  │              │   │
+│  └────────┬─────────┘  └────────┬─────────┘  └──────────────┘   │
+│           │                     │                                 │
+│  ┌────────▼─────────────────────▼──────────────────────────────┐ │
+│  │              Route Manager (Task → Agent)                   │ │
+│  │  ▪ Explicit routing (agent_id specified)                    │ │
+│  │  ▪ Capability matching (metadata hint)                      │ │
+│  │  ▪ Keyword detection (message analysis)                     │ │
+│  │  ▪ LLM routing fallback (claudehaiku)                       │ │
+│  └────────┬──────────────────────────────────────────────────┘  │
+│           │                                                       │
+│  ┌────────▼──────────────┐  ┌────────────────────────────────┐  │
+│  │  Registry (Store)     │  │  Task Executor                 │  │
+│  │  ▪ Agent registration │  │  ▪ HTTP call to agent /run     │  │
+│  │  ▪ Heartbeat tracking │  │  ▪ Timeout handling            │  │
+│  │  ▪ Status monitoring  │  │  ▪ Result persistence          │  │
+│  └───────────────────────┘  └───────────────────────────────┘   │
+│                                                                   │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │         Storage Layer (SQLAlchemy + Async)              │   │
+│  │  ▪ TaskRecord (task execution history)                  │   │
+│  │  ▪ AgentRecord (agent registry)                         │   │
+│  │  ▪ UsageRecord (cost & token tracking)                  │   │
+│  └──────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+         ▲         ▲       ▲         ▲
+         │ HTTP    │ HTTP  │ HTTP    │ HTTP
+    ┌────┴─┐  ┌────┴─┐  ┌─┴───┐   ┌┴───────┐
+    │Agent1│  │Agent2│  │Agent3│   │Agent N │
+    │ :8001│  │ :8002│  │ :8003│   │ :XXXX  │
+    └──────┘  └──────┘  └──────┘   └────────┘
+    </div>
+
+    <h3>3.2 Core Components</h3>
+
+    <h4>API Gateway (FastAPI)</h4>
+    <p>Single HTTP entry point for all clients. Defines routes: <code>/agents</code>, <code>/tasks</code>, <code>/auth</code>, <code>/health</code>, <code>/ws</code>.</p>
+    <ul>
+        <li>Middleware: CORS, trusted host validation, security headers</li>
+        <li>Lifespan management: initializes registry, storage, observability on startup</li>
+        <li>Accepts task submissions (REST + WebSocket)</li>
+        <li>Enforces JWT authentication</li>
+        <li>Streams WebSocket results in real-time</li>
+    </ul>
+
+    <h4>Route Manager (Dispatcher)</h4>
+    <p>Intelligent task-to-agent mapping using a 4-level cascade:</p>
+    <ol>
+        <li><strong>Explicit</strong> — <code>task.agent_id</code> is set → direct route</li>
+        <li><strong>Capability Hint</strong> — <code>task.metadata["capability"]</code> matches a tag</li>
+        <li><strong>Keyword Matching</strong> — Analyze message for patterns</li>
+        <li><strong>LLM Fallback</strong> — Ask Claude Haiku to pick the best agent</li>
+    </ol>
+    <p>Levels 1-3 are fast (&lt; 10ms); level 4 adds ~15ms but is semantically aware.</p>
+
+    <h4>Registry Store</h4>
+    <p>Maintains source of truth for agent availability and capabilities.</p>
+    <ul>
+        <li><code>register_agent()</code> — Agent joins (idempotent; re-register = update)</li>
+        <li><code>deregister_agent()</code> — Agent leaves</li>
+        <li><code>heartbeat()</code> — Agent pings every 30s; updates status</li>
+        <li><code>list_agents()</code> — Query by status or capability</li>
+        <li><code>find_agents_for_task()</code> — Return online agents matching capabilities</li>
+    </ul>
+    <p>Background process: Health monitor runs every 30s, marks agents OFFLINE if no heartbeat for 90s.</p>
+
+    <h4>Task Executor</h4>
+    <p>Orchestrates task submission and result persistence.</p>
+    <ul>
+        <li>Save task to storage (status=PENDING)</li>
+        <li>Route task to an agent</li>
+        <li>Call agent's <code>/run</code> endpoint (300s timeout)</li>
+        <li>Persist TaskResult to storage</li>
+        <li>Record usage (tokens, cost, duration)</li>
+    </ul>
+
+    <h4>Storage Layer (SQLAlchemy + SQLite)</h4>
+    <p><strong>TaskRecord</strong> — Immutable log of every task execution (indexed by session_id, agent_id)</p>
+    <p><strong>AgentRecord</strong> — Agent registry (indexed by name, status, capabilities)</p>
+    <p><strong>UsageRecord</strong> — Cost & performance tracking (indexed by task_id, agent_id)</p>
+
+    <h4>Authentication (JWT)</h4>
+    <ul>
+        <li>Tokens issued at <code>/auth/token</code> after validating username/password</li>
+        <li>Token embedded in WebSocket query param: <code>ws://host:9000/ws/SESSION_ID?token=JWT_TOKEN</code></li>
+        <li>Tokens expire after 24 hours (configurable)</li>
+        <li>In production: integrate with LDAP, OAuth2, etc.</li>
+    </ul>
+
+    <h4>Observability Tracker</h4>
+    <p>Real-time tracking of platform usage across all agents.</p>
+    <ul>
+        <li>Total tasks executed</li>
+        <li>Total tokens consumed (for billing)</li>
+        <li>Total cost (USD)</li>
+        <li>Average duration per task</li>
+        <li>Per-agent breakdowns</li>
+    </ul>
+
+    <h4>Agent SDK (agent_base.py)</h4>
+    <p>Base class every agent must implement:</p>
+    <ul>
+        <li>Abstract method: <code>async handle(task: Task) → TaskResult</code></li>
+        <li>Lifecycle: <code>register()</code>, <code>deregister()</code>, <code>send_heartbeat()</code></li>
+        <li>Helper: <code>make_agent_server(agent)</code> returns FastAPI app with <code>/run</code>, <code>/health</code>, <code>/info</code> endpoints</li>
+    </ul>
+
+    <h2 id="api-contracts">4. API Contracts</h2>
+
+    <h3>4.1 Task Submission (REST)</h3>
+    <pre><code>POST /tasks
+Content-Type: application/json
+Authorization: Bearer &lt;JWT_TOKEN&gt;
+
+{
+  "message": "Write a unit test for the login function",
+  "session_id": "user-session-123",
+  "agent_id": null,
+  "context": {"file": "auth.py", "framework": "pytest"},
+  "metadata": {"capability": "testing"}
+}
+
+Response (200):
+{
+  "task_id": "abc123",
+  "agent_id": "testing-agent-01",
+  "status": "completed",
+  "content": "Here's a unit test...",
+  "tokens_used": 340,
+  "cost_usd": 0.000051,
+  "duration_ms": 1240,
+  "error": null
+}</code></pre>
+
+    <h3>4.2 WebSocket Streaming</h3>
+    <pre><code>WebSocket: /ws/{session_id}?token=&lt;JWT_TOKEN&gt;
+
+Client sends:
+{"message": "Analyze this bug report", "agent_id": null, "context": {...}}
+
+Server streams:
+{"type": "start"}
+{"type": "result", "task_id": "...", "agent_id": "...", "content": "..."}
+{"type": "done"}</code></pre>
+
+    <h3>4.3 Task Chaining</h3>
+    <pre><code>POST /tasks/chain
+[
+  {"message": "Identify security issues", "metadata": {"capability": "code_review"}},
+  {"message": "Based on the issues found, write a fix", "metadata": {"capability": "code_generation"}}
+]
+
+Response: [TaskResult1, TaskResult2]
+(output of Task1 becomes context for Task2)</code></pre>
+
+    <h3>4.4 Agent Management</h3>
+    <table>
+        <tr>
+            <th>Endpoint</th>
+            <th>Method</th>
+            <th>Purpose</th>
+        </tr>
+        <tr>
+            <td><code>/agents/register</code></td>
+            <td>POST</td>
+            <td>Agent joins the platform</td>
+        </tr>
+        <tr>
+            <td><code>/agents/{agent_id}</code></td>
+            <td>GET</td>
+            <td>Get agent details</td>
+        </tr>
+        <tr>
+            <td><code>/agents</code></td>
+            <td>GET</td>
+            <td>List agents (with filters)</td>
+        </tr>
+        <tr>
+            <td><code>/agents/{agent_id}/heartbeat</code></td>
+            <td>POST</td>
+            <td>Keep-alive ping</td>
+        </tr>
+        <tr>
+            <td><code>/agents/{agent_id}</code></td>
+            <td>DELETE</td>
+            <td>Deregister agent</td>
+        </tr>
+    </table>
+
+    <h3>4.5 Analytics & Monitoring</h3>
+    <table>
+        <tr>
+            <th>Endpoint</th>
+            <th>Purpose</th>
+        </tr>
+        <tr>
+            <td><code>GET /health</code></td>
+            <td>Platform health + online agents</td>
+        </tr>
+        <tr>
+            <td><code>GET /health/ready</code></td>
+            <td>Kubernetes readiness probe</td>
+        </tr>
+        <tr>
+            <td><code>GET /tasks?session_id=...&agent_id=...&limit=50</code></td>
+            <td>Task history</td>
+        </tr>
+        <tr>
+            <td><code>GET /usage/summary?agent_id=...</code></td>
+            <td>Usage stats (tasks, tokens, cost)</td>
+        </tr>
+        <tr>
+            <td><code>GET /usage/per-agent</code></td>
+            <td>Per-agent usage breakdown</td>
+        </tr>
+    </table>
+
+    <h2 id="routing">5. Task Routing Flow</h2>
+    <div class="flow-diagram">
+Task arrives with (message, agent_id, metadata, context)
+                  ↓
+          [Agent ID set?]
+          ├─ YES → Get agent from registry → Check ONLINE? → Route or FAILED
+          └─ NO ↓
+              [Capability in metadata?]
+              ├─ YES → Find agents with capability → Route or NO match
+              └─ NO ↓
+                  [Keyword match in message?]
+                  ├─ YES → Match agents with inferred capability → Route
+                  └─ NO ↓
+                      [LLM Route (Claude Haiku)]
+                      ├─ SUCCESS → Route to best agent
+                      └─ NO agents online → FAILED
+    </div>
+
+    <h2 id="lifecycle">6. Task Execution Lifecycle</h2>
+    <div class="flow-diagram">
+1. Task Submitted → Save to DB (PENDING)
+                 ↓
+2. Route Task → Pick agent from registry
+                 ↓
+3. Agent Found? ── NO ──→ FAILED result
+                 ↓ YES
+4. Call Agent → HTTP POST /run (timeout: 300s)
+                 ↓
+5. Result? ── SUCCESS ── Parse Result (COMPLETED)
+              ↓ FAILURE
+              Create Error Result (FAILED)
+                 ↓
+6. Store Result to DB
+                 ↓
+7. Record Usage (tokens, cost, duration)
+                 ↓
+8. Return TaskResult to Client
+    </div>
+
+    <h2 id="architecture">7. Architecture Diagrams</h2>
+
+    <h3>7.1 Agent Registration & Heartbeat Sequence</h3>
+    <div class="flow-diagram">
+Agent Startup:
+  1. agent.register(platform_url, api_key)
+     → POST /agents/register with AgentInfo
+     → Platform stores in registry (status=ONLINE)
+
+  2. agent.start_heartbeat_loop(interval_s=30)
+     → Every 30s: POST /agents/{agent_id}/heartbeat
+     → Platform updates last_heartbeat, status=ONLINE
+
+Background (Platform):
+  3. Health monitor runs every 30s
+     → Check all agents: now() - last_heartbeat > 90s?
+     → Mark stale agents as OFFLINE
+     → These agents won't receive new tasks
+
+Agent Shutdown:
+  4. agent.deregister()
+     → DELETE /agents/{agent_id}
+     → Platform removes from registry
+    </div>
+
+    <h3>7.2 Task Chain Execution</h3>
+    <div class="flow-diagram">
+Client submits: [Task1, Task2, Task3]
+        ↓
+  Task1 → Route → Agent A → Result1 (content="Output 1")
+        ↓
+  Task2 (context={prior_result: "Output 1"}) → Route → Agent B → Result2
+        ↓
+  Task3 (context={prior_result: "Output 2"}) → Route → Agent C → Result3
+        ↓
+  Return [Result1, Result2, Result3] to client
+
+  If any task FAILS → Stop chain, return partial results
+    </div>
+
+    <h3>7.3 WebSocket Streaming Sequence</h3>
+    <div class="flow-diagram">
+Client                              Platform                         Agent
+│                                      │                              │
+├─ WebSocket Connect ───────────→ Validate JWT token              │
+│ /ws/SESSION_ID?token=JWT       ├─ Accept connection             │
+│                                      │                              │
+├─ Send Task JSON ───────────────→ Route & Submit                 │
+│ {"message": "...", ...}         ├─ HTTP POST /run ──────────────→ Execute
+│                                      │                              │
+├─ {"type": "start"} ←───────────── (Task executing)             │
+│                                      │                              │
+├─ {"type": "result", ...} ←────── Store result, track usage     │
+│                                      │                          ← Result
+│                                      │                              │
+├─ {"type": "done"} ←────────────── (cleanup)                    │
+│                                      │                              │
+└─ WebSocket Close                Close connection                 │
+    </div>
+
+    <h2 id="security">8. Security & Compliance</h2>
+
+    <h3>8.1 Authentication & Authorization</h3>
+    <ul>
+        <li><strong>JWT tokens</strong> issued at <code>/auth/token</code> after credential validation</li>
+        <li><strong>Token scope:</strong> User identity (sub) and role</li>
+        <li><strong>Enforcement:</strong> Middleware checks Bearer token on protected routes</li>
+        <li><strong>Expiration:</strong> 24 hours (configurable)</li>
+        <li><strong>Production:</strong> Replace dev auth with LDAP, OAuth2, or SAML</li>
+    </ul>
+
+    <h3>8.2 Network Security</h3>
+    <ul>
+        <li><strong>CORS:</strong> Restricted to dashboard URL and localhost (dev)</li>
+        <li><strong>Trusted Hosts:</strong> Only allow requests from whitelisted hosts</li>
+        <li><strong>Security Headers:</strong> HSTS, X-Content-Type-Options, X-Frame-Options, X-XSS-Protection</li>
+        <li><strong>WebSocket Auth:</strong> Token must be provided in query params</li>
+    </ul>
+
+    <h3>8.3 Input Validation</h3>
+    <ul>
+        <li><strong>Message size limit:</strong> 10 KB per task message</li>
+        <li><strong>WebSocket payload:</strong> 100 KB limit</li>
+        <li><strong>Credential length:</strong> 255 chars max</li>
+        <li><strong>Agent ID format:</strong> UUID or alphanumeric (validated on registration)</li>
+    </ul>
+
+    <h3>8.4 Resource Limits</h3>
+    <ul>
+        <li><strong>Task timeout:</strong> 300 seconds (5 minutes)</li>
+        <li><strong>Heartbeat timeout:</strong> 90 seconds (agents mark OFFLINE after no ping)</li>
+        <li><strong>Max concurrent requests:</strong> Dependent on FastAPI worker pool</li>
+        <li><strong>Database connections:</strong> Connection pooling (SQLAlchemy)</li>
+    </ul>
+
+    <h2 id="scaling">9. Scaling & Deployment Considerations</h2>
+
+    <h3>9.1 Single Instance (Current)</h3>
+    <ul>
+        <li>✅ Suitable for &lt; 10 agents, &lt; 1000 tasks/day</li>
+        <li>✅ SQLite database on local disk</li>
+        <li>✅ Minimal operational overhead</li>
+        <li>⚠️ Not HA; no failover</li>
+    </ul>
+
+    <h3>9.2 Multi-Instance (Future Path)</h3>
+    <div class="note">
+        <strong>Requirements for horizontal scaling:</strong>
+        <ol>
+            <li>Shared database — Migrate from SQLite to PostgreSQL</li>
+            <li>Distributed registry — Use Redis for agent heartbeat cache</li>
+            <li>Message queue — Kafka/RabbitMQ for async task queuing</li>
+            <li>Load balancer — Nginx/HAProxy to distribute requests</li>
+            <li>Session affinity — Optional; WebSocket sessions can move across instances</li>
+        </ol>
+    </div>
+
+    <h3>9.3 Observability for Operations</h3>
+    <ul>
+        <li><strong>Metrics:</strong> Prometheus-compatible endpoint for Grafana</li>
+        <li><strong>Logs:</strong> Structured JSON logs to stdout (for aggregation)</li>
+        <li><strong>Traces:</strong> OpenTelemetry instrumentation (optional)</li>
+        <li><strong>Dashboards:</strong> Show online agents, task success rate, cost per agent</li>
+    </ul>
+
+    <h2 id="extensions">10. Extension Points</h2>
+
+    <h3>10.1 Custom Routing Strategy</h3>
+    <p>Override <code>route()</code> in <code>dispatcher/router.py</code> to implement:</p>
+    <ul>
+        <li>ML-based agent selection (ranking model)</li>
+        <li>Load-based routing (prefer less busy agents)</li>
+        <li>Latency-based routing (prefer fast agents)</li>
+        <li>Regional routing (geo-distributed agents)</li>
+    </ul>
+
+    <h3>10.2 Custom Storage Backend</h3>
+    <p>Replace SQLAlchemy engine with:</p>
+    <ul>
+        <li>MongoDB (document storage)</li>
+        <li>Cassandra (time-series data)</li>
+        <li>DynamoDB (serverless)</li>
+    </ul>
+
+    <h3>10.3 Custom Authentication</h3>
+    <p>Replace JWT with:</p>
+    <ul>
+        <li>OAuth2 + OpenID Connect</li>
+        <li>SAML 2.0</li>
+        <li>Kerberos/Active Directory</li>
+    </ul>
+
+    <h3>10.4 Agent Middleware</h3>
+    <p>Wrap <code>make_agent_server()</code> to add:</p>
+    <ul>
+        <li>Rate limiting per user/role</li>
+        <li>Request/response logging</li>
+        <li>Custom metrics collection</li>
+        <li>Request tracing</li>
+    </ul>
+
+    <h2 id="metrics">11. Key Metrics & SLOs</h2>
+    <table>
+        <tr>
+            <th>Metric</th>
+            <th>Target</th>
+            <th>Notes</th>
+        </tr>
+        <tr>
+            <td>Task Success Rate</td>
+            <td>&gt; 99%</td>
+            <td>Includes timeouts, agent failures</td>
+        </tr>
+        <tr>
+            <td>Agent Availability</td>
+            <td>&gt; 99.5%</td>
+            <td>Uptime of registered agents</td>
+        </tr>
+        <tr>
+            <td>Task Latency (P99)</td>
+            <td>&lt; 5 sec</td>
+            <td>Excluding agent execution time</td>
+        </tr>
+        <tr>
+            <td>Routing Latency (P99)</td>
+            <td>&lt; 100 ms</td>
+            <td>Time to pick agent (incl. LLM calls)</td>
+        </tr>
+        <tr>
+            <td>Platform Uptime</td>
+            <td>&gt; 99.9%</td>
+            <td>Exclude infra failures</td>
+        </tr>
+        <tr>
+            <td>Cost per Task</td>
+            <td>&lt; $0.01 USD</td>
+            <td>Token cost + platform overhead</td>
+        </tr>
+    </table>
+
+    <div style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid #ecf0f1; text-align: center; color: #666; font-size: 0.9rem;">
+        <p><strong>Omi Platform — Technical Design Document</strong></p>
+        <p>Version 0.1.0 | June 2026 | Status: Active Development</p>
+        <p style="margin-top: 1rem;">Generated: 2026-06-08</p>
+    </div>
+</body>
+</html>

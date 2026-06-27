@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 900" width="1000" height="900">
+  <defs>
+    <style>
+      .decision { fill: #fff9e6; stroke: #f39c12; stroke-width: 2; }
+      .process { fill: #e8f4f8; stroke: #2c3e50; stroke-width: 2; }
+      .success { fill: #d5f4e6; stroke: #27ae60; stroke-width: 2; }
+      .fail { fill: #fadbd8; stroke: #e74c3c; stroke-width: 2; }
+      .text-dark { fill: #2c3e50; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; }
+      .text-small { fill: #34495e; font-family: Arial, sans-serif; font-size: 11px; }
+      .arrow { stroke: #34495e; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .label { fill: #666; font-family: Arial, sans-serif; font-size: 10px; font-weight: bold; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#34495e" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="500" y="30" text-anchor="middle" class="text-dark" font-size="16">Task Routing Decision Flow</text>
+
+  <!-- Task Arrives -->
+  <rect x="350" y="50" width="300" height="60" class="process" rx="5"/>
+  <text x="500" y="75" text-anchor="middle" class="text-dark">Task Arrives</text>
+  <text x="500" y="92" text-anchor="middle" class="text-small">message, agent_id, metadata, context</text>
+
+  <!-- Decision 1: Agent ID -->
+  <path d="M 500 110 L 500 150" class="arrow"/>
+  <polygon points="500,150 490,135 510,135" fill="#f39c12"/>
+  
+  <rect x="350" y="150" width="300" height="70" class="decision" rx="5"/>
+  <text x="500" y="175" text-anchor="middle" class="text-dark">Is agent_id specified?</text>
+  <text x="500" y="195" text-anchor="middle" class="text-small">(Explicit routing)</text>
+
+  <!-- YES path -->
+  <path d="M 350 185 L 200 185 L 200 270" class="arrow"/>
+  <text x="280" y="175" class="label">YES</text>
+
+  <rect x="100" y="270" width="200" height="60" class="success" rx="5"/>
+  <text x="200" y="295" text-anchor="middle" class="text-dark">Route to Agent</text>
+  <text x="200" y="310" text-anchor="middle" class="text-small">Direct (no LLM)</text>
+
+  <!-- NO path -->
+  <path d="M 500 220 L 500 260" class="arrow"/>
+  <text x="520" y="240" class="label">NO</text>
+
+  <!-- Decision 2: Capability -->
+  <rect x="350" y="260" width="300" height="70" class="decision" rx="5"/>
+  <text x="500" y="285" text-anchor="middle" class="text-dark">Capability in metadata?</text>
+  <text x="500" y="305" text-anchor="middle" class="text-small">task.metadata["capability"]</text>
+
+  <!-- Capability YES -->
+  <path d="M 650" y="295 L 800 295 L 800 370" class="arrow"/>
+  <text x="720" y="285" class="label">YES</text>
+
+  <rect x="700" y="370" width="200" height="60" class="success" rx="5"/>
+  <text x="800" y="395" text-anchor="middle" class="text-dark">Match Agents</text>
+  <text x="800" y="410" text-anchor="middle" class="text-small">By capability tag</text>
+
+  <!-- Capability NO -->
+  <path d="M 500 330 L 500 380" class="arrow"/>
+  <text x="520" y="360" class="label">NO</text>
+
+  <!-- Decision 3: Keywords -->
+  <rect x="350" y="380" width="300" height="70" class="decision" rx="5"/>
+  <text x="500" y="405" text-anchor="middle" class="text-dark">Keywords in message?</text>
+  <text x="500" y="425" text-anchor="middle" class="text-small">write, test, review, deploy, etc.</text>
+
+  <!-- Keywords YES -->
+  <path d="M 350 415 L 200 415 L 200 490" class="arrow"/>
+  <text x="280" y="405" class="label">YES</text>
+
+  <rect x="100" y="490" width="200" height="60" class="success" rx="5"/>
+  <text x="200" y="515" text-anchor="middle" class="text-dark">Match Agents</text>
+  <text x="200" y="530" text-anchor="middle" class="text-small">By inferred capability</text>
+
+  <!-- Keywords NO -->
+  <path d="M 500 450 L 500 500" class="arrow"/>
+  <text x="520" y="480" class="label">NO</text>
+
+  <!-- LLM Route -->
+  <rect x="350" y="500" width="300" height="70" class="decision" rx="5"/>
+  <text x="500" y="525" text-anchor="middle" class="text-dark">LLM Route (Fallback)</text>
+  <text x="500" y="545" text-anchor="middle" class="text-small">Claude Haiku: "Pick best agent"</text>
+
+  <!-- LLM Result -->
+  <path d="M 500 570 L 500 600" class="arrow"/>
+  <rect x="350" y="600" width="300" height="70" class="success" rx="5"/>
+  <text x="500" y="625" text-anchor="middle" class="text-dark">Route Decision Made</text>
+  <text x="500" y="645" text-anchor="middle" class="text-small">Agent selected, check if ONLINE</text>
+
+  <!-- Final Check -->
+  <path d="M 500 670 L 500 700" class="arrow"/>
+  <rect x="350" y="700" width="300" height="70" class="decision" rx="5"/>
+  <text x="500" y="725" text-anchor="middle" class="text-dark">Agent status = ONLINE?</text>
+  <text x="500" y="745" text-anchor="middle" class="text-small">(Registry check)</text>
+
+  <!-- Success -->
+  <path d="M 650 735 L 800 735" class="arrow"/>
+  <text x="720" y="725" class="label">YES</text>
+  <rect x="700" y="700" width="200" height="70" class="success" rx="5"/>
+  <text x="800" y="725" text-anchor="middle" class="text-dark">Execute Task</text>
+  <text x="800" y="745" text-anchor="middle" class="text-small">Send to agent HTTP /run</text>
+
+  <!-- Failure -->
+  <path d="M 350 735 L 200 735" class="arrow"/>
+  <text x="280" y="725" class="label">NO</text>
+  <rect x="0" y="700" width="200" height="70" class="fail" rx="5"/>
+  <text x="100" y="725" text-anchor="middle" class="text-dark">FAILED</text>
+  <text x="100" y="745" text-anchor="middle" class="text-small">No agent available</text>
+</svg>

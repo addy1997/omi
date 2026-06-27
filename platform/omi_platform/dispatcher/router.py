@@ -27,6 +27,8 @@ _KEYWORD_MAP: dict[str, list[str]] = {
     "data_analysis":   ["analyse", "analyze", "data", "chart", "plot", "statistics", "csv"],
     "devops":          ["deploy", "ci", "cd", "pipeline", "docker", "kubernetes", "infra"],
     "testing":         ["test", "unit test", "pytest", "coverage", "mock"],
+    "documentation":   ["docstring", "readme", "changelog", "write docs", "document this",
+                        "api reference", "api docs"],
 }
 
 

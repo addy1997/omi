@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" width="1200" height="700">
+  <defs>
+    <style>
+      .box { fill: #e8f4f8; stroke: #2c3e50; stroke-width: 2; }
+      .header-box { fill: #34495e; stroke: #2c3e50; stroke-width: 2; }
+      .agent-box { fill: #d5f4e6; stroke: #27ae60; stroke-width: 2; }
+      .text-dark { fill: #2c3e50; font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; }
+      .text-light { fill: #fff; font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; }
+      .text-small { fill: #34495e; font-family: Arial, sans-serif; font-size: 12px; }
+      .arrow { stroke: #2c3e50; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .label { fill: #666; font-family: Arial, sans-serif; font-size: 11px; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#2c3e50" />
+    </marker>
+  </defs>
+
+  <!-- Client Layer -->
+  <text x="600" y="30" text-anchor="middle" class="text-dark" font-size="16">CLIENT LAYER</text>
+  
+  <rect x="50" y="50" width="140" height="60" class="box" rx="5"/>
+  <text x="120" y="75" text-anchor="middle" class="text-dark">Web UI</text>
+  <text x="120" y="92" text-anchor="middle" class="text-small">(React)</text>
+  
+  <rect x="250" y="50" width="140" height="60" class="box" rx="5"/>
+  <text x="320" y="75" text-anchor="middle" class="text-dark">Mobile App</text>
+  <text x="320" y="92" text-anchor="middle" class="text-small">(Native)</text>
+  
+  <rect x="450" y="50" width="140" height="60" class="box" rx="5"/>
+  <text x="520" y="75" text-anchor="middle" class="text-dark">CLI / Scripts</text>
+  <text x="520" y="92" text-anchor="middle" class="text-small">(REST)</text>
+
+  <rect x="650" y="50" width="140" height="60" class="box" rx="5"/>
+  <text x="720" y="75" text-anchor="middle" class="text-dark">Dashboard</text>
+  <text x="720" y="92" text-anchor="middle" class="text-small">(WebSocket)</text>
+
+  <!-- Arrows to Platform -->
+  <path d="M 120 110 L 120 150" class="arrow"/>
+  <path d="M 320 110 L 320 150" class="arrow"/>
+  <path d="M 520 110 L 520 150" class="arrow"/>
+  <path d="M 720 110 L 720 150" class="arrow"/>
+
+  <!-- Platform Box -->
+  <rect x="50" y="150" width="900" height="450" class="header-box" rx="8"/>
+  <text x="500" y="175" text-anchor="middle" class="text-light" font-size="18" font-weight="bold">OMI PLATFORM (Port 9000)</text>
+
+  <!-- API Gateway -->
+  <rect x="80" y="195" width="200" height="80" class="box" rx="5"/>
+  <text x="180" y="220" text-anchor="middle" class="text-dark" font-weight="bold">API Gateway</text>
+  <text x="180" y="240" text-anchor="middle" class="text-small">• CORS, Security Headers</text>
+  <text x="180" y="255" text-anchor="middle" class="text-small">• JWT Auth</text>
+
+  <!-- Router -->
+  <rect x="330" y="195" width="200" height="80" class="box" rx="5"/>
+  <text x="430" y="220" text-anchor="middle" class="text-dark" font-weight="bold">Route Manager</text>
+  <text x="430" y="240" text-anchor="middle" class="text-small">• Explicit routing</text>
+  <text x="430" y="255" text-anchor="middle" class="text-small">• Capability matching</text>
+
+  <!-- Task Executor -->
+  <rect x="580" y="195" width="200" height="80" class="box" rx="5"/>
+  <text x="680" y="220" text-anchor="middle" class="text-dark" font-weight="bold">Task Executor</text>
+  <text x="680" y="240" text-anchor="middle" class="text-small">• HTTP to agents</text>
+  <text x="680" y="255" text-anchor="middle" class="text-small">• Timeout handling</text>
+
+  <!-- Registry -->
+  <rect x="80" y="310" width="180" height="80" class="box" rx="5"/>
+  <text x="170" y="335" text-anchor="middle" class="text-dark" font-weight="bold">Agent Registry</text>
+  <text x="170" y="355" text-anchor="middle" class="text-small">• Registration</text>
+  <text x="170" y="370" text-anchor="middle" class="text-small">• Heartbeat tracking</text>
+
+  <!-- Storage -->
+  <rect x="310" y="310" width="180" height="80" class="box" rx="5"/>
+  <text x="400" y="335" text-anchor="middle" class="text-dark" font-weight="bold">Storage</text>
+  <text x="400" y="355" text-anchor="middle" class="text-small">• TaskRecord</text>
+  <text x="400" y="370" text-anchor="middle" class="text-small">• AgentRecord</text>
+
+  <!-- Observability -->
+  <rect x="540" y="310" width="180" height="80" class="box" rx="5"/>
+  <text x="630" y="335" text-anchor="middle" class="text-dark" font-weight="bold">Observability</text>
+  <text x="630" y="355" text-anchor="middle" class="text-small">• Cost tracking</text>
+  <text x="630" y="370" text-anchor="middle" class="text-small">• Metrics</text>
+
+  <!-- Authentication -->
+  <rect x="770" y="310" width="140" height="80" class="box" rx="5"/>
+  <text x="840" y="335" text-anchor="middle" class="text-dark" font-weight="bold">Auth (JWT)</text>
+  <text x="840" y="355" text-anchor="middle" class="text-small">• Token issue</text>
+  <text x="840" y="370" text-anchor="middle" class="text-small">• Validation</text>
+
+  <!-- Database Layer -->
+  <rect x="80" y="425" width="830" height="60" class="box" rx="5"/>
+  <text x="495" y="450" text-anchor="middle" class="text-dark" font-weight="bold">SQLAlchemy + SQLite/PostgreSQL</text>
+  <text x="495" y="468" text-anchor="middle" class="text-small">TaskRecord | AgentRecord | UsageRecord</text>
+
+  <!-- Arrows within platform -->
+  <path d="M 180 275 L 180 310" class="arrow"/>
+  <path d="M 430 275 L 400 310" class="arrow"/>
+  <path d="M 680 275 L 630 310" class="arrow"/>
+  <path d="M 170 390 L 200 425" class="arrow"/>
+  <path d="M 400 390 L 400 425" class="arrow"/>
+  <path d="M 630 390 L 600 425" class="arrow"/>
+
+  <!-- Agents -->
+  <rect x="100" y="630" width="120" height="50" class="agent-box" rx="5"/>
+  <text x="160" y="650" text-anchor="middle" class="text-dark">Agent 1</text>
+  <text x="160" y="668" text-anchor="middle" class="text-small">:8001</text>
+
+  <rect x="280" y="630" width="120" height="50" class="agent-box" rx="5"/>
+  <text x="340" y="650" text-anchor="middle" class="text-dark">Agent 2</text>
+  <text x="340" y="668" text-anchor="middle" class="text-small">:8002</text>
+
+  <rect x="460" y="630" width="120" height="50" class="agent-box" rx="5"/>
+  <text x="520" y="650" text-anchor="middle" class="text-dark">Agent 3</text>
+  <text x="520" y="668" text-anchor="middle" class="text-small">:8003</text>
+
+  <rect x="640" y="630" width="120" height="50" class="agent-box" rx="5"/>
+  <text x="700" y="650" text-anchor="middle" class="text-dark">Agent N</text>
+  <text x="700" y="668" text-anchor="middle" class="text-small">:XXXX</text>
+
+  <!-- Arrows from platform to agents -->
+  <path d="M 160 630 L 160 590" class="arrow"/>
+  <path d="M 340 630 L 340 590" class="arrow"/>
+  <path d="M 520 630 L 520 590" class="arrow"/>
+  <path d="M 700 630 L 700 590" class="arrow"/>
+
+  <!-- Connection labels -->
+  <text x="140" y="615" text-anchor="middle" class="label">HTTP POST /run</text>
+  <text x="320" y="615" text-anchor="middle" class="label">HTTP POST /run</text>
+  <text x="500" y="615" text-anchor="middle" class="label">HTTP POST /run</text>
+  <text x="680" y="615" text-anchor="middle" class="label">HTTP POST /run</text>
+</svg>

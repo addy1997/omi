@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600">
+  <defs>
+    <style>
+      .state-box { fill: #e8f4f8; stroke: #2c3e50; stroke-width: 2; }
+      .state-online { fill: #d5f4e6; stroke: #27ae60; stroke-width: 3; }
+      .state-offline { fill: #fadbd8; stroke: #e74c3c; stroke-width: 3; }
+      .state-error { fill: #f4d4d8; stroke: #c0392b; stroke-width: 3; }
+      .text-dark { fill: #2c3e50; font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; }
+      .text-small { fill: #34495e; font-family: Arial, sans-serif; font-size: 11px; }
+      .transition { stroke: #34495e; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .label { fill: #555; font-family: Arial, sans-serif; font-size: 10px; font-style: italic; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#34495e" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="450" y="30" text-anchor="middle" class="text-dark" font-size="16">Agent Lifecycle State Machine</text>
+
+  <!-- Unregistered State -->
+  <rect x="50" y="80" width="180" height="80" class="state-box" rx="8"/>
+  <text x="140" y="110" text-anchor="middle" class="text-dark">UNREGISTERED</text>
+  <text x="140" y="130" text-anchor="middle" class="text-small">Agent not running</text>
+  <text x="140" y="145" text-anchor="middle" class="text-small">or not joined</text>
+
+  <!-- Arrow 1 -->
+  <path d="M 230 120 Q 330 80 400 100" class="transition" stroke-dasharray="5,5"/>
+  <text x="310" y="85" text-anchor="middle" class="label">agent.register()</text>
+
+  <!-- ONLINE State -->
+  <rect x="400" y="50" width="180" height="120" class="state-online" rx="8"/>
+  <text x="490" y="85" text-anchor="middle" class="text-dark" font-size="15">ONLINE</text>
+  <text x="490" y="105" text-anchor="middle" class="text-small">✓ Registered</text>
+  <text x="490" y="120" text-anchor="middle" class="text-small">✓ Heartbeat fresh</text>
+  <text x="490" y="135" text-anchor="middle" class="text-small">✓ Ready for tasks</text>
+
+  <!-- Tasks processing loop -->
+  <circle cx="490" cy="300" r="50" fill="none" stroke="#3498db" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="490" y="300" text-anchor="middle" class="text-dark" font-size="12">Tasks</text>
+  <text x="490" y="318" text-anchor="middle" class="text-small">Processed</text>
+
+  <!-- Arrow to tasks -->
+  <path d="M 490 170 L 490 250" class="transition"/>
+  <text x="510" y="210" class="label">Every 30s</text>
+  <text x="510" y="225" class="label">Heartbeat</text>
+
+  <!-- Arrow back from tasks -->
+  <path d="M 540 300 Q 590 200 530 170" class="transition"/>
+  <text x="580" y="235" class="label">Update</text>
+  <text x="580" y="250" class="label">last_heartbeat</text>
+
+  <!-- OFFLINE State -->
+  <rect x="650" y="80" width="180" height="120" class="state-offline" rx="8"/>
+  <text x="740" y="115" text-anchor="middle" class="text-dark" font-size="15">OFFLINE</text>
+  <text x="740" y="135" text-anchor="middle" class="text-small">✗ Heartbeat stale</text>
+  <text x="740" y="150" text-anchor="middle" class="text-small">✗ No routing to agent</text>
+  <text x="740" y="165" text-anchor="middle" class="text-small">(90s+ no ping)</text>
+
+  <!-- Arrow to OFFLINE -->
+  <path d="M 580 110 L 650 110" class="transition"/>
+  <text x="615" y="100" text-anchor="middle" class="label">No heartbeat</text>
+  <text x="615" y="115" text-anchor="middle" class="label">90+ seconds</text>
+
+  <!-- Arrow back to ONLINE -->
+  <path d="M 650 130 Q 590 200 580 130" class="transition"/>
+  <text x="600" y="180" text-anchor="middle" class="label">Agent restarts,</text>
+  <text x="600" y="195" text-anchor="middle" class="label">heartbeats resume</text>
+
+  <!-- DEREGISTERED State -->
+  <rect x="650" y="280" width="180" height="80" class="state-box" rx="8"/>
+  <text x="740" y="310" text-anchor="middle" class="text-dark">DEREGISTERED</text>
+  <text x="740" y="330" text-anchor="middle" class="text-small">Manually removed</text>
+  <text x="740" y="345" text-anchor="middle" class="text-small">from registry</text>
+
+  <!-- Arrow from OFFLINE to DEREGISTERED -->
+  <path d="M 740 200 L 740 280" class="transition"/>
+  <text x="760" y="240" text-anchor="middle" class="label">Manual admin</text>
+  <text x="760" y="255" text-anchor="middle" class="label">deregister</text>
+
+  <!-- Task execution detail box -->
+  <rect x="50" y="280" width="300" height="180" fill="none" stroke="#ddd" stroke-width="1" stroke-dasharray="3,3" rx="5"/>
+  <text x="200" y="300" text-anchor="middle" class="text-dark" font-size="12">Task Execution Detail</text>
+  
+  <text x="70" y="325" class="text-small">1. Platform checks agent in registry</text>
+  <text x="70" y="345" class="text-small">2. Status must be ONLINE</text>
+  <text x="70" y="365" class="text-small">3. HTTP POST /run sent to agent</text>
+  <text x="70" y="385" class="text-small">4. Agent processes task</text>
+  <text x="70" y="405" class="text-small">5. Result returned to platform</text>
+  <text x="70" y="425" class="text-small">6. Result stored and tracked</text>
+  <text x="70" y="445" class="text-small">7. Response sent to client</text>
+</svg>
